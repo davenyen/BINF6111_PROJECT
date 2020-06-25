@@ -26,6 +26,9 @@ matrix_path=${2}
 list_path=${3}
 output_path=${4}
 verbose=true # fix this later, use getopts to parse variable options!
+not_exist=false #just for testing purposes
+
+# flag if fastq are already uncompressed
 
 
 # error handling inputs (LATER)
@@ -40,9 +43,8 @@ echo ""
 
 
 # get files with the reads in them from directory
-en_regex='(.+)_L[0-9]{3}_*'
-r1_regex='.+_R1_.+.fastq.gz$'
-r2_regex='.+_R2_.+.fastq.gz$'
+en_regex='(.+)_L[0-9]{3}_.+'
+read_regex='.+_(R[12])_.+.fastq$'
 for fastq in ${data_path}/*
     do
     
@@ -61,18 +63,33 @@ for fastq in ${data_path}/*
         # 2) decompress file
         # 3) process reads using python to open file, look for cell barcodes, write reads to new_files
 
+    # ability to resume the pipeline halfway, so detect files in output folder already
 
-    # check file is read 1
-    if [[ ${fastq} =~ ${r1_regex} ]]
+    # check file is a read file
+    if [[ ${fastq} =~ ${read_regex} ]]
     then
-        if ${verbose}; then echo "Reading $(basename ${fastq})"; fi
+        file=$(basename ${fastq} .gz)
+        if ${verbose}; then echo "Reading ${file}"; fi
+
+        if ${not_exist}
+        then
+            # rsync it over, this way is safer in case fastq is huge
+            rsync -avz ${fastq} ${output_path}
+            
+            # uncompress file in place
+            gunzip ${output_path}/${file}
+        fi
+
+        # process read 1 file for the cell barcodes
+        if [[ 'R1' == ${BASH_REMATCH[1]} ]]
+        then
+            python3 parse_fastq.py ${output_path}/${file} ${list_path} ${experiment_name} ${BASH_REMATCH[1]}
+        fi
+
+        # delete full fastq after we are done with testing phase
+
         
-    # check file id read 2
-    elif [[ ${fastq} =~ ${r2_regex} ]]
-    then
-        if ${verbose}; then echo "Reading $(basename ${fastq})"; fi
-
-    # else don't care, go to the next file
+    # else, go to the next file
     else  
         if ${verbose}; then echo "Not a read file"; fi
         continue

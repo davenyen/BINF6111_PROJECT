@@ -12,3 +12,4 @@ The script to collect protospacer/barcode correspondences information from a bam
 An example of its usage is at: 
 cd /Volumes/Data1/PROJECTS/CROPseq/Pilot/hnPCR/iSeq_Script.txt
 The original source is https://github.com/shendurelab/single-cell-ko-screens
+TruSeq Read 1 is used to sequence 16 bp 10x Barcodes and 12 bp UMI
