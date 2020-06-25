@@ -2,6 +2,8 @@ import sys
 from itertools import islice
 import collections
 import os
+import time
+from progress.bar import IncrementalBar
 
 # run cases
 # output_path=/Users/student/BINF6111_2020/test/output
@@ -45,7 +47,9 @@ with open(sys.argv[2]) as barcode_list:
 fastq_to_append = os.path.dirname(sys.argv[1]) + '/' + sys.argv[3] + '_' + sys.argv[4] + '.fastq'
 fastq_to_append = open(fastq_to_append, "a")
 
-with open(sys.argv[1]) as file:
+file = open(sys.argv[1])
+
+with file:
     for i, line in enumerate(file, 1):
         
         # check line if it is header, save to maybe print later

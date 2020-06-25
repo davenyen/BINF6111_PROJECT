@@ -7,13 +7,6 @@
 
 ## PROCCESSING INPUT
 
-# - Read in path of data directory, output directory, list of barcodes/group, matrix.csv
-# - Decompress fastq files
-# - Concatenate fastq reads to creating one fastq for read one and one for
-# read two containing only reads with cell barcodes from the list
-# - Only grab sequences
-
-
 # test inputs
 # data_path='/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1'
 # list_path='/Users/student/BINF6111_2020/test/test_list_barcodes.txt'
@@ -44,7 +37,11 @@ echo ""
 
 # get files with the reads in them from directory
 en_regex='(.+)_L[0-9]{3}_.+'
-read_regex='.+_(R[12])_.+.fastq$'
+read_regex='.+_(R[12])_.+.fastq.gz$'
+
+# # test
+# en_regex='(test)_.+_L[0-9]{3}_.+'
+# read_regex='test_.+_(R[12])_.+.fastq$'
 for fastq in ${data_path}/*
     do
     
@@ -77,13 +74,15 @@ for fastq in ${data_path}/*
             rsync -avz ${fastq} ${output_path}
             
             # uncompress file in place
-            gunzip ${output_path}/${file}
+            gunzip ${output_path}/${file}.qz
         fi
 
         # process read 1 file for the cell barcodes
         if [[ 'R1' == ${BASH_REMATCH[1]} ]]
         then
-            python3 parse_fastq.py ${output_path}/${file} ${list_path} ${experiment_name} ${BASH_REMATCH[1]}
+            experiment_name='test'
+            python3 parse_fastq.py ${output_path}/${experiment_name}_*_R1_001.fastq \
+            ${list_path} ${experiment_name} ${BASH_REMATCH[1]}
         fi
 
         # delete full fastq after we are done with testing phase
