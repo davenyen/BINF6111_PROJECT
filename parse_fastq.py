@@ -3,7 +3,6 @@ from itertools import islice
 import collections
 import os
 import time
-from progress.bar import IncrementalBar
 
 # run cases
 # output_path=/Users/student/BINF6111_2020/test/output
@@ -11,7 +10,7 @@ from progress.bar import IncrementalBar
 # list_path='/Users/student/BINF6111_2020/test/test_list_barcodes.txt'
 # experiment_name=PilotCROP_C_1_S1
 # read=R1
-# python3 parse_fastq.py ${output_path}/${file} ${list_path} ${experiment_name} ${read}
+#python3 parse_fastq.py ${output_path}/${file} ${list_path} ${experiment_name} ${read}
 
 
 # This script will open a file and go through every fourth line
@@ -37,11 +36,13 @@ def consume(iterator, n=None):
 
 
 # For performance put list of cell barcodes in dictionary
-
 barcodes = {}
 with open(sys.argv[2]) as barcode_list:
     for barcode in barcode_list:
         barcodes[barcode.rstrip()] = 1 # just a random number, will replace with the
+
+# For performance create dictionary of x-y coordinates to link read 1 and read 2:
+coordinates = {}
 
 
 fastq_to_append = os.path.dirname(sys.argv[1]) + '/' + sys.argv[3] + '_' + sys.argv[4] + '.fastq'
@@ -54,7 +55,7 @@ with file:
         
         # check line if it is header, save to maybe print later
         if line[0] == "@":
-            seq_code = line.split(':')[-1]
+            location = ':'.join(line.split(':')[4:6])
             header = line
 
         # if it's not a header must be a sequence
@@ -66,7 +67,9 @@ with file:
             try:
                 # print("hi")
                 check = barcodes[barcode]
-                barcodes[barcode] = seq_code
+                coordinates[location] = barcode
+                # print(location)
+                # print(coordinates[location])
                 fastq_to_append.write(header)
                 fastq_to_append.write(line)
             
@@ -75,6 +78,5 @@ with file:
                 pass
             
         # will skip lines 3 and 4 for performance
-
         if not i % 2:
             consume(file, 2)

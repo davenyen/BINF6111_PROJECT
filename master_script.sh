@@ -18,6 +18,7 @@ data_path=${1}
 matrix_path=${2}
 list_path=${3}
 output_path=${4}
+ref_genome=${5}
 verbose=true # fix this later, use getopts to parse variable options!
 not_exist=false #just for testing purposes
 
@@ -105,7 +106,9 @@ if ${verbose}; then echo "Running pipeline on experiment: ${experiment_name}"; f
 ## CELL ASSIGNMENT
 
 
-## ALIGN TO HUMAN GENOME
+# ${experiment_name}_${group_name}
 
+## ALIGN TO HUMAN GENOME
+ ${ref_genome} ${output_path}
 
 ## TIDYING OUTPUT (output desired formats, clean temp files)
