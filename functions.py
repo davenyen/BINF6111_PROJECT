@@ -15,7 +15,7 @@ from itertools import islice
 
 # Creates a fastq file with sequences that match read1 coordinates and are in sorted groups based on the target
 # PS REMOVE COUNT IN FINAL VERSION, only using now to limit output because output takes too long
-def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_barcodes):
+def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_barcodes, dir_name):
 	file = open(read_two_file)
 	count = 0
 
@@ -30,7 +30,7 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 			# if the coordinate exists in read1, then it will proceed to write the other 2 lines to the file.
 			else:
 				if new_header == False:
-					target_file = ("sorted_target_groups/{}/{}.fastq".format(barcode_matrix[read1_coordinates_barcodes[coordinates]], barcode_matrix[read1_coordinates_barcodes[coordinates]]))
+					target_file = ("{}/{}/{}.fastq".format(dir_name, barcode_matrix[read1_coordinates_barcodes[coordinates]], barcode_matrix[read1_coordinates_barcodes[coordinates]]))
 					f = open(target_file, "a")
 					f.write("{}".format(line))
 					f.close()
@@ -39,13 +39,13 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 					# GET TARGET/GROUP then write a fastq file with read2 data into group/directory
 					if coordinates in read1_coordinates_barcodes:
 						if read1_coordinates_barcodes[coordinates] in barcode_matrix.keys():
-							if os.path.isfile("sorted_target_groups/{}/{}.fastq".format(barcode_matrix[read1_coordinates_barcodes[coordinates]], barcode_matrix[read1_coordinates_barcodes[coordinates]])) == False:
-								target_file = ("sorted_target_groups/{}/{}.fastq".format(barcode_matrix[read1_coordinates_barcodes[coordinates]], barcode_matrix[read1_coordinates_barcodes[coordinates]]))
+							if os.path.isfile("{}/{}/{}.fastq".format(dir_name, barcode_matrix[read1_coordinates_barcodes[coordinates]], barcode_matrix[read1_coordinates_barcodes[coordinates]])) == False:
+								target_file = ("{}/{}/{}.fastq".format(dir_name, barcode_matrix[read1_coordinates_barcodes[coordinates]], barcode_matrix[read1_coordinates_barcodes[coordinates]]))
 								f = open(target_file, "w")
 								f.write("{}{}".format(header, sequence))
 								f.close()
 							else:
-								target_file = ("sorted_target_groups/{}/{}.fastq".format(barcode_matrix[read1_coordinates_barcodes[coordinates]], barcode_matrix[read1_coordinates_barcodes[coordinates]]))
+								target_file = ("{}/{}/{}.fastq".format(dir_name, barcode_matrix[read1_coordinates_barcodes[coordinates]], barcode_matrix[read1_coordinates_barcodes[coordinates]]))
 								f = open(target_file, "a")
 								f.write("{}{}".format(header, sequence))
 								f.close()
@@ -76,11 +76,19 @@ def read_matrix (csv_matrix):
 	return barcode_dictionary
 
 # Creates target/group directories
-def create_target_directory (barcode_table):
-	dir1 = 'sorted_target_groups'
+def create_target_directory (barcode_table, read_two):
+	read_two = read_two.split("/")[-1:]
+	read_two = read_two[0].split("L")[:-1]
+	dir1 = ("{}SORTED_GROUPS".format(read_two[0]))
 
 	# Creates the directory for the sorted groups to go into
-	os.makedirs(dir1)
+	try:
+		os.makedirs(dir1)
+	except: #If excepts then directory already exists 
+		#uncomment this if you don't want to append
+		#comment this if you want to append to a directory with the same name
+		os.system("rm -r {}".format(dir1))
+		pass
 	
 	# Creates a folder for each target/group
 	for group in barcode_table:
@@ -90,7 +98,7 @@ def create_target_directory (barcode_table):
 		except:
 			pass
 
-	pass
+	return dir1
 
 # Make a dictionary of read1 where {barcode: coordinate} (USED FOR CELL_ASSIGN.PY)
 # REMOVE COUNT IN FINAL VERSION
