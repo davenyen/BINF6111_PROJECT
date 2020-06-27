@@ -9,8 +9,8 @@
 
 # test inputs
 # data_path='/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1'
-# list_path='/Users/student/BINF6111_2020/test/test_list_barcodes.txt'
 # matrix_path='/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv'
+# list_path='/Users/student/BINF6111_2020/test/test_list_barcodes.txt'
 # output_path='/Users/student/BINF6111_2020/test/output'
 
 # set variables
@@ -54,7 +54,6 @@ for fastq in ${data_path}/*
         echo "can't identify experiment name, will name experiment as 'sample_1'"
         experiment_name='sample_1'   
     fi
-
 
     # Steps are:
         # 1) check which read file
@@ -106,11 +105,15 @@ if ${verbose}; then echo "Running pipeline on experiment: ${experiment_name}"; f
 ## CELL ASSIGNMENT
 
 # atm dont know what file is read1 and read2 here (ASK CHELSEA)
+# To do
+# 1. Create loop and iterate through Reads (match read1 to read2)
+# 2. Run cell_assign for each separate read1 + read2 matches 
+
 #python3 cell_assign.py ${matrix_path} ${} ${}
 
 # ${experiment_name}_${group_name}
 
 ## ALIGN TO HUMAN GENOME
- ${ref_genome} ${output_path}
+ #${ref_genome} ${output_path}
 
 ## TIDYING OUTPUT (output desired formats, clean temp files)
