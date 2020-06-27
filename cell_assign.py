@@ -19,23 +19,24 @@ from functions import read_matrix, create_target_directory, create_sorted_fastq_
 # MAIN
 if __name__ == '__main__':
 
-	# BLANK SLATE, removes the folder so you can create new sorted files
-	if os.path.isdir("sorted_target_groups") == True:
-		os.system("rm -r sorted_target_groups")
-	
 	# VARIABLES
 	csv_matrix = sys.argv[1]
 	read_one = sys.argv[2]
 	read_two = sys.argv[3]
+
+	# BLANK SLATE, removes the folder so you can create new sorted files
+	# May have delete in order to append 
+	#if os.path.isdir("sorted_target_groups") == True:
+		#os.system("rm -r sorted_target_groups")
 	
 	# Run error checking
 	error_check (csv_matrix, read_one, read_two)
 	
 	# Main functions
 	barcode_table = read_matrix (csv_matrix)
-	create_target_directory (barcode_table)
+	dir_name = create_target_directory (barcode_table, read_two)
 	coordinates_barcodes = coordinates_barcodes_dictionary (read_one)
-	create_sorted_fastq_file (read_two, barcode_table, coordinates_barcodes)
+	create_sorted_fastq_file (read_two, barcode_table, coordinates_barcodes, dir_name)
 
 	print("\nCELL ASSIGNMENT SUCCESSFUL\n")
 
