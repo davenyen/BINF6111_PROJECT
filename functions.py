@@ -13,6 +13,11 @@ from itertools import islice
 ################################# DAVID'S ##################################
 ############################################################################
 
+# used for fastq (stolen)
+def process(lines=None):
+    ks = ['name', 'sequence', 'optional', 'quality']
+    return {k: v for k, v in zip(ks, lines)}
+
 # Reads matrix csv and saves as a data structure (dictionary) for O(1) access time
 def read_matrix (csv_matrix):
 	barcode_dictionary = {}
@@ -26,7 +31,7 @@ def read_matrix (csv_matrix):
 	    		skip_first = False
 	    		continue
     		else:
-		        barcode_dictionary[row[1]] = row[5]
+		        barcode_dictionary[row[1].rstrip()] = row[5]
 
 	return barcode_dictionary
 
@@ -74,7 +79,7 @@ def coordinates_barcodes_dictionary (read1_file):
 				read1_dictionary[coordinates] = barcode
 		
 			count += 1
-			if count == 5:
+			if count == 5000:
 				break
 				
 			# will skip lines 3 and 4 for performance
