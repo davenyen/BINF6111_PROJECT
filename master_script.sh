@@ -105,6 +105,8 @@ if ${verbose}; then echo "Running pipeline on experiment: ${experiment_name}"; f
 
 ## CELL ASSIGNMENT
 
+# atm dont know what file is read1 and read2 here (ASK CHELSEA)
+#python3 cell_assign.py ${matrix_path} ${} ${}
 
 # ${experiment_name}_${group_name}
 
