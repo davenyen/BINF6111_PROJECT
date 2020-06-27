@@ -13,7 +13,51 @@ from itertools import islice
 ################################# DAVID'S ##################################
 ############################################################################
 
-# Reads matrix csv and saves as a data structure (dictionary) for O(1) access time
+# Creates a fastq file with sequences that match read1 coordinates and are in sorted groups based on the target
+# PS REMOVE COUNT IN FINAL VERSION, only using now to limit output because output takes too long
+def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_barcodes):
+	file = open(read_two_file)
+	count = 0
+
+	with file:
+		for line in file:
+			# check line if it is header, save to write
+			if line[0] == "@":
+				header = line
+				coordinates = ':'.join(line.split(':')[4:6])
+				new_header = True
+			# if it's not a header must be a sequence/quality/+  
+			# if the coordinate exists in read1, then it will proceed to write the other 2 lines to the file.
+			else:
+				if new_header == False:
+					target_file = ("sorted_target_groups/{}/{}.fastq".format(barcode_matrix[read1_coordinates_barcodes[coordinates]], barcode_matrix[read1_coordinates_barcodes[coordinates]]))
+					f = open(target_file, "a")
+					f.write("{}".format(line))
+					f.close()
+				else:
+					sequence = line
+					# GET TARGET/GROUP then write a fastq file with read2 data into group/directory
+					if coordinates in read1_coordinates_barcodes:
+						if read1_coordinates_barcodes[coordinates] in barcode_matrix.keys():
+							if os.path.isfile("sorted_target_groups/{}/{}.fastq".format(barcode_matrix[read1_coordinates_barcodes[coordinates]], barcode_matrix[read1_coordinates_barcodes[coordinates]])) == False:
+								target_file = ("sorted_target_groups/{}/{}.fastq".format(barcode_matrix[read1_coordinates_barcodes[coordinates]], barcode_matrix[read1_coordinates_barcodes[coordinates]]))
+								f = open(target_file, "w")
+								f.write("{}{}".format(header, sequence))
+								f.close()
+							else:
+								target_file = ("sorted_target_groups/{}/{}.fastq".format(barcode_matrix[read1_coordinates_barcodes[coordinates]], barcode_matrix[read1_coordinates_barcodes[coordinates]]))
+								f = open(target_file, "a")
+								f.write("{}{}".format(header, sequence))
+								f.close()
+
+							new_header = False
+
+			count += 1
+			if count == 10000:
+				break
+	pass
+
+# Reads matrix csv and returns a data structure (dictionary) for O(1) access time
 def read_matrix (csv_matrix):
 	barcode_dictionary = {}
 
@@ -22,7 +66,8 @@ def read_matrix (csv_matrix):
 	    reader = csv.reader(file)
 	    skip_first = True
 	    for row in reader:
-	    	if skip_first == True:
+			# Skips first row because there is no data in the first row
+	    	if skip_first == True: 
 	    		skip_first = False
 	    		continue
     		else:
@@ -35,11 +80,8 @@ def create_target_directory (barcode_table):
 	dir1 = 'sorted_target_groups'
 
 	# Creates the directory for the sorted groups to go into
-	try:
-		os.makedirs(dir1)
-	except:
-		pass
-
+	os.makedirs(dir1)
+	
 	# Creates a folder for each target/group
 	for group in barcode_table:
 		iter_dir = ("{}/{}".format(dir1, barcode_table[group]))
@@ -51,15 +93,14 @@ def create_target_directory (barcode_table):
 	pass
 
 # Make a dictionary of read1 where {barcode: coordinate} (USED FOR CELL_ASSIGN.PY)
+# REMOVE COUNT IN FINAL VERSION
 def coordinates_barcodes_dictionary (read1_file):
 
 	read1_dictionary = {}
-	coordinates = ''
-	barcode = ''
+	file = open(read1_file)
 	count = 0
 
-	file = open(read1_file)
-
+	# Goes through read1 and saves barcode + coordinate into a dictionary for O(1)
 	with file:
 		for i, line in enumerate(file, 1):
 			
@@ -72,14 +113,14 @@ def coordinates_barcodes_dictionary (read1_file):
 				# barcode is first 16 bp
 				barcode = ''.join(line[0:16])
 				read1_dictionary[coordinates] = barcode
-		
-			count += 1
-			if count == 5000:
-				break
 				
 			# will skip lines 3 and 4 for performance
 			if not i % 2:
 				consume(file, 2)
+
+			count += 1
+			if count == 10000:
+				break
 
 	return read1_dictionary
 
@@ -93,3 +134,23 @@ def consume(iterator, n=None):
     else:
         # advance to the empty slice starting at position n
         next(islice(iterator, n, n), None)
+
+# ERROR CHECKING for cell_assign.py
+def error_check (csv_matrix, read1, read2):
+	# (1): Exit if arguments not 4 (invalid)
+	if len(sys.argv) != 4:
+		print("\nInsufficient arguments entered. Input must have: barcode.csv, read1 and read2.\nExiting...\n")
+		exit()
+	# (2): Exit if the first input is not a csv file (invalid)
+	if csv_matrix[-4:] != ".csv":
+		print("\nError, '{}' is not a csv file.\nExiting ...\n".format(sys.argv[1]))
+		exit()
+	# (3): Exit if second input is not a fastq file (invalid)
+	if read1[-6:] != ".fastq":
+		print("\nError, '{}' is not a fastq file.\nExiting ...\n".format(sys.argv[2]))
+		exit()
+	# (4): Exit if third input is not a fastq file (invalid)
+	if read2[-6:] != ".fastq":
+		print("\nError, '{}' is not a fastq file.\nExiting ...\n".format(sys.argv[3]))
+		exit()
+	pass
