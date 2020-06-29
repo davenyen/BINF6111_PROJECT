@@ -1,6 +1,7 @@
 import sys
 import os
-from functions import read_matrix, create_target_directory, create_sorted_fastq_file, coordinates_barcodes_dictionary, error_check
+import time
+from functions import read_matrix, create_target_directory, create_sorted_fastq_file, coordinates_barcodes_dictionary, error_check, printProgressBar
 
 # REMOVE COUNTS FROM FUNCTIONS.PY FOR FULL OUTPUT (ATM LIMITED TO 10,000)
 
@@ -16,6 +17,11 @@ from functions import read_matrix, create_target_directory, create_sorted_fastq_
 # - Identify cell barcode from read one, allocate sequence from read 2 to a
 # 	particular group 
 
+# get coordinates from parse_fastq for speed (maybe)
+# create directory if fastq_group file has actual input
+# input "directory already exists, append or rewrite?"
+# add progress bars (curious to see how long it actually takes for the whole function to run)
+
 # MAIN
 if __name__ == '__main__':
 
@@ -23,10 +29,11 @@ if __name__ == '__main__':
 	csv_matrix = sys.argv[1]
 	read_one = sys.argv[2]
 	read_two = sys.argv[3]
+	start_time = time.time()
 
 	# BLANK SLATE, removes the folder so you can create new sorted files
 	# May have delete in order to append 
-	#if os.path.isdir("sorted_target_groups") == True:
+	# if os.path.isdir("sorted_target_groups") == True:
 		#os.system("rm -r sorted_target_groups")
 	
 	# Run error checking
@@ -39,4 +46,4 @@ if __name__ == '__main__':
 	create_sorted_fastq_file (read_two, barcode_table, coordinates_barcodes, dir_name)
 
 	print("\nCELL ASSIGNMENT SUCCESSFUL\n")
-
+	print("Runtime = {} seconds.\n".format(time.time() - start_time))
