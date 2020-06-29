@@ -13,14 +13,40 @@ from itertools import islice
 ################################# DAVID'S ##################################
 ############################################################################
 
+# Progress bar stolen from stack overflow
+# Print iterations progress
+def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = ' ', printEnd = "\r"):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
+    # Print New Line on Complete
+    if iteration == total: 
+        print()
+
+
 # Creates a fastq file with sequences that match read1 coordinates and are in sorted groups based on the target
 # PS REMOVE COUNT IN FINAL VERSION, only using now to limit output because output takes too long
 def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_barcodes, dir_name):
 	file = open(read_two_file)
 	count = 0
 
+	num_lines = sum(1 for line in open(file))
+	printProgressBar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 	with file:
-		for line in file:
+		for i, line in enumerate(file, 1):
 			# check line if it is header, save to write
 			if line[0] == "@":
 				header = line
@@ -52,6 +78,7 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 
 							new_header = False
 
+			printProgressBar(i + 1, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 			count += 1
 			if count == 10000:
 				break
