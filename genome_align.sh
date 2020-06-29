@@ -22,12 +22,13 @@ do
         break
     fi
     i=$((i+1))
-    #"$STAR_RUN" --runThreadN 4 \
-    #--genomeDir "$REFERENCE_GENOME" \
-    #--readFilesIn "${EXPERIMENT_DIREC}/${direc}/${direc}.fastq" \
-    #--outSAMtype BAM Unsorted SortedByCoordinate \
-    #--outWigType bedGraph \
-    #--outFileNamePrefix "${EXPERIMENT_DIREC}/${direc}/"
+    "$STAR_RUN" --runThreadN 4 \
+    --genomeDir "$REFERENCE_GENOME" \
+    --readFilesIn "${EXPERIMENT_DIREC}/${direc}/${direc}.fastq" \
+    --outSAMtype BAM Unsorted SortedByCoordinate \
+    --outWigType bedGraph \
+    --outFileNamePrefix "${EXPERIMENT_DIREC}/${direc}/"
+    /Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools index -b "${EXPERIMENT_DIREC}/${direc}/Aligned.sortedByCoord.out.bam"
 done
 
 # TESTING OF DIFFERENT STAR PARAMETERS
