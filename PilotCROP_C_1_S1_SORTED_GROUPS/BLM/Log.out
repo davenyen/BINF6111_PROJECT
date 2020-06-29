@@ -144,7 +144,7 @@ quantTranscriptomeBan             IndelSoftclipSingleend
 twopass1readsN                    18446744073709551615
 twopassMode                       None
 ##### Command Line:
-/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/STAR-2.5.2b/bin/MacOSX_x86_64/STAR --runThreadN 4 --genomeDir /Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index --readFilesIn PilotCROP_C_1_S1_SORTED_GROUPS/BLM/BLM.fastq --outSAMtype BAM Unsorted SortedByCoordinate --outFileNamePrefix PilotCROP_C_1_S1_SORTED_GROUPS/BLM/
+/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/STAR-2.5.2b/bin/MacOSX_x86_64/STAR --runThreadN 4 --genomeDir /Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index --readFilesIn PilotCROP_C_1_S1_SORTED_GROUPS/BLM/BLM.fastq --outSAMtype BAM Unsorted SortedByCoordinate --outWigType bedGraph --outFileNamePrefix PilotCROP_C_1_S1_SORTED_GROUPS/BLM/
 ##### Initial USER parameters from Command Line:
 outFileNamePrefix                 PilotCROP_C_1_S1_SORTED_GROUPS/BLM/
 ###### All USER parameters from Command Line:
@@ -152,6 +152,7 @@ runThreadN                    4     ~RE-DEFINED
 genomeDir                     /Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index     ~RE-DEFINED
 readFilesIn                   PilotCROP_C_1_S1_SORTED_GROUPS/BLM/BLM.fastq        ~RE-DEFINED
 outSAMtype                    BAM   Unsorted   SortedByCoordinate        ~RE-DEFINED
+outWigType                    bedGraph        ~RE-DEFINED
 outFileNamePrefix             PilotCROP_C_1_S1_SORTED_GROUPS/BLM/     ~RE-DEFINED
 ##### Finished reading parameters from all sources
 
@@ -161,10 +162,11 @@ genomeDir                         /Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/H
 readFilesIn                       PilotCROP_C_1_S1_SORTED_GROUPS/BLM/BLM.fastq   
 outFileNamePrefix                 PilotCROP_C_1_S1_SORTED_GROUPS/BLM/
 outSAMtype                        BAM   Unsorted   SortedByCoordinate   
+outWigType                        bedGraph   
 
 -------------------------------
 ##### Final effective command line:
-/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/STAR-2.5.2b/bin/MacOSX_x86_64/STAR   --runThreadN 4   --genomeDir /Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index   --readFilesIn PilotCROP_C_1_S1_SORTED_GROUPS/BLM/BLM.fastq      --outFileNamePrefix PilotCROP_C_1_S1_SORTED_GROUPS/BLM/   --outSAMtype BAM   Unsorted   SortedByCoordinate   
+/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/STAR-2.5.2b/bin/MacOSX_x86_64/STAR   --runThreadN 4   --genomeDir /Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index   --readFilesIn PilotCROP_C_1_S1_SORTED_GROUPS/BLM/BLM.fastq      --outFileNamePrefix PilotCROP_C_1_S1_SORTED_GROUPS/BLM/   --outSAMtype BAM   Unsorted   SortedByCoordinate      --outWigType bedGraph   
 
 ##### Final parameters after user input--------------------------------:
 versionSTAR                       20201
@@ -230,7 +232,7 @@ outSJfilterCountTotalMin          3   1   1   1
 outSJfilterOverhangMin            30   12   12   12   
 outSJfilterDistToOtherSJmin       10   0   5   10   
 outSJfilterIntronMaxVsReadN       50000   100000   200000   
-outWigType                        None   
+outWigType                        bedGraph   
 outWigStrand                      Stranded   
 outWigReferencesPrefix            -
 outWigNorm                        RPM   
@@ -356,7 +358,7 @@ Number of real (reference) chromosomes= 25
 24	Y	59373566	3039559680
 25	MT	16569	3099066368
 --sjdbOverhang = 100 taken from the generated genome
-Started loading the genome: Sun Jun 28 16:43:45 2020
+Started loading the genome: Mon Jun 29 15:07:28 2020
 
 checking Genome sizefile size: 3168732204 bytes; state: good=1 eof=0 fail=0 bad=0
 checking SA sizefile size: 24153797385 bytes; state: good=1 eof=0 fail=0 bad=0
@@ -370,7 +372,7 @@ Loading Genome ... done! state: good=1 eof=0 fail=0 bad=0; loaded 3168732204 byt
 SA file size: 24153797385 bytes; state: good=1 eof=0 fail=0 bad=0
 Loading SA ... done! state: good=1 eof=0 fail=0 bad=0; loaded 24153797385 bytes
 Loading SAindex ... done: 1565873619 bytes
-Finished loading the genome: Sun Jun 28 16:44:27 2020
+Finished loading the genome: Mon Jun 29 15:08:13 2020
 
 Sum of all Genome bytes: 5361595291
 Sum of all SA bytes: 3008682847403
@@ -382,8 +384,9 @@ Created thread # 2
 Created thread # 3
 Thread #0 end of input stream, nextChar=-1
 Completed: thread #1
-Completed: thread #2
 Completed: thread #3
+Completed: thread #3
+Completed: thread #2
 BAM sorting: 11 mapped reads
 BAM sorting bins genomic start loci:
 1	0	152005221
@@ -400,6 +403,7 @@ Completed: thread #0
 Joined thread # 1
 Joined thread # 2
 Joined thread # 3
-Jun 28 16:44:40 ..... started sorting BAM
+Jun 29 15:08:26 ..... started sorting BAM
 Max memory needed for sorting = 272
+Jun 29 15:08:26 ..... started wiggle output
 ALL DONE!
