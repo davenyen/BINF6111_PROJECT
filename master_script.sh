@@ -104,7 +104,6 @@ if ${verbose}; then echo "Running pipeline on experiment: ${experiment_name}"; f
 
 ## CELL ASSIGNMENT
 
-# atm dont know what file is read1 and read2 here (ASK CHELSEA)
 # To do
 # 1. Create loop and iterate through Reads (match read1 to read2)
 # 2. Run cell_assign for each separate read1 + read2 matches 
