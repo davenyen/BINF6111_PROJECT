@@ -4,7 +4,9 @@ import time
 import datetime
 from functions import read_matrix, create_target_directory, create_sorted_fastq_file, coordinates_barcodes_dictionary, error_check, printProgressBar
 
-# CHANGE LIMITER TO FALSE FROM FUNCTIONS.PY FOR FULL OUTPUT (ATM LIMITED TO 10,000)
+# NEED TO UPDATE TO READ MULTIPLE READS OF SAME EXPERIMENT!
+
+# CHANGE LIMITER TO FALSE FROM FUNCTIONS.PY FOR FULL OUTPUT (ATM LIMITED TO 200,000)
 # (CURRENTLY ON REFACTOR [1] VERSION)
 # (PRE-REFACTOR) TIME TAKEN TO RUN FULL OUTPUT ON OG_READ1 AND OG_READ2 = ETA 15 hours
 # (REFACTOR [2]) TIME TAKEN TO RUN FULL OUTPUT ON OG_READ1 AND OG_READ2 = ETA 1.5 hours?
@@ -13,7 +15,7 @@ from functions import read_matrix, create_target_directory, create_sorted_fastq_
 # (REFACTOR [1]) TIME TAKEN TO RUN FULL OUTPUT ON test_r1 AND test_r2 = 0.8 minutes [avg of 5 runs]
 # (REFACTOR [2]) TIME TAKEN TO RUN FULL OUTPUT ON test_r1 AND test_r2 = 1.33 minutes [avg of 5 runs]
 
-# DAVID's SPEED IDEAS:
+# OPTIMISATION IDEAS:
 # (1) Assume some barcodes are not in the matrix, then do [if barcode not in matrix: skip] (speeds up read1)
 # (2) Assume coordinates do not always match, then do [if coordinates not in read1: skip] (speeds up read2)
 # (3) Assume coordinates always match, then do [if read1[coordinate] barcode not in matrix: skip] (speeds up read2)
@@ -23,6 +25,11 @@ from functions import read_matrix, create_target_directory, create_sorted_fastq_
 # Output: sorted_target_groups/{lots of groups}/group.fastq (for each group)
 # Sample run cmd line:
 # python3 cell_assign.py /Users/student/BINF6111_2020/data/test_barcode.csv /Users/student/BINF6111_2020/test/output/PilotCROP_C_1_S1_L001_R1_001.fastq /Users/student/BINF6111_2020/test/output/PilotCROP_C_1_S1_L001_R2_001.fastq
+
+
+# TEST RUN USE THIS:
+# python3 cell_assign.py /Users/student/BINF6111_2020/data/test_barcode.csv /Users/student/BINF6111_2020/test/output/test_L001_R1_001.fastq /Users/student/BINF6111_2020/test/output/test_L001_R2_001.fastq 
+
 
 # Read in matrix csv
 # - Associate barcode from read one to sequence in read 2
@@ -54,4 +61,4 @@ if __name__ == '__main__':
 	create_sorted_fastq_file (read_two, barcode_table, coordinates_barcodes, dir_name)
 
 	print("\nCELL ASSIGNMENT SUCCESSFUL")
-	print("Runtime = {} h/m/s.\n".format(str(datetime.timedelta(seconds=time.time() - start_time))))
+	#print("Runtime = {} h/m/s.\n".format(str(datetime.timedelta(seconds=time.time() - start_time))))

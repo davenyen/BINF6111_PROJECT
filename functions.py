@@ -9,7 +9,7 @@ import mmap
 from itertools import islice
 
 # Global variable limiter (change to false to get full output) for cell_assign.py
-limiter = False
+limiter = True
 limiter_val = 200000
 
 ############################################################################
@@ -62,10 +62,10 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 
 	file = open(read_two_file)
 	count = 0
-	num_lines = 1013795888
+	num_lines = 200000
 
 	# Prints progress bar for cell_assign main function
-	print("\n")
+	print("")
 	printProgressBar(0, num_lines, prefix = 'Cell Assignment Progress:', suffix = 'Complete', length = 50)
 
 	with file:
