@@ -89,6 +89,9 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
 									f = open(target_file, "w")
 									f.write("{}{}".format(header, sequence))
+
+									# remove bottom if error
+									#f = open(target_file, "a")
 								except:
 									f.write("{}{}".format(header, sequence))
 								
@@ -100,6 +103,7 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 							else:
 								# if errors then add if else "if os.path.isfile("{}/{}/{}.fastq".format(dir_name, group_name, group_name)) == True:"
 								# Assumes since directory exists then file must too, so append for speed
+								# 
 								try:
 									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
 									f = open(target_file, "a")
@@ -111,12 +115,12 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 							new_header = False
 				else:
 					# If the files have incorrect input change group_name below to 'barcode_matrix[read1_coordinates_barcodes[coordinates]]'
-					try:
-						target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
-						f = open(target_file, "a")
-						f.write("{}".format(line))
-					except:
-						f.write("{}".format(line))
+					
+					#target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
+					#f = open(target_file, "a")
+					#f.write("{}".format(line))
+				
+					f.write("{}".format(line))
 					#f.close()
 
 			# Else the line must be the header
