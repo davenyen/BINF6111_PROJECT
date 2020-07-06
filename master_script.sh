@@ -35,7 +35,6 @@ echo ""
 
 
 
-
 # get files with the reads in them from directory
 en_regex='(.+)_L[0-9]{3}_.+'
 read_regex='.+_(R[12])_.+.fastq.gz$'
