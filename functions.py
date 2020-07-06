@@ -9,7 +9,7 @@ import mmap
 from itertools import islice
 
 # Global variable limiter (change to false to get full output) for cell_assign.py
-limiter = True
+limiter = False
 limiter_val = 200000
 
 ############################################################################
@@ -56,13 +56,15 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
 def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_barcodes, dir_name):
 
 	# read2 lines = 1013795888
+	# test lines = 200000
 	# can remove progress bar for speed as requires line count of file (which takes a WHILE to do)
 	# change num_lines to num_lines = mapcount(read_two_file) 
 	# otherwise if another function runs through read2 get line count off them
 
 	file = open(read_two_file)
 	count = 0
-	num_lines = 200000
+	num_lines = 1013795888
+	file_set = set()
 
 	# Prints progress bar for cell_assign main function
 	print("")
@@ -83,27 +85,39 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 							if os.path.isdir("{}/{}".format(dir_name, group_name)) == False:
 								os.makedirs("{}/{}".format(dir_name, group_name))
 								# Creates fastq file for respective group (can probably delete if statement?)
-								target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
-								f = open(target_file, "w")
-								f.write("{}{}".format(header, sequence))
-								f.close()
+								try:
+									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
+									f = open(target_file, "w")
+									f.write("{}{}".format(header, sequence))
+								except:
+									f.write("{}{}".format(header, sequence))
+								
+								file_set.add(f)
+									
+								#f.close()
 								
 							# If output/(group) exists then append to it
 							else:
 								# if errors then add if else "if os.path.isfile("{}/{}/{}.fastq".format(dir_name, group_name, group_name)) == True:"
 								# Assumes since directory exists then file must too, so append for speed
-								target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
-								f = open(target_file, "a")
-								f.write("{}{}".format(header, sequence))
-								f.close()
+								try:
+									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
+									f = open(target_file, "a")
+									f.write("{}{}".format(header, sequence))
+								except:
+									f.write("{}{}".format(header, sequence))
+								#f.close()
 
 							new_header = False
 				else:
 					# If the files have incorrect input change group_name below to 'barcode_matrix[read1_coordinates_barcodes[coordinates]]'
-					target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
-					f = open(target_file, "a")
-					f.write("{}".format(line))
-					f.close()
+					try:
+						target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
+						f = open(target_file, "a")
+						f.write("{}".format(line))
+					except:
+						f.write("{}".format(line))
+					#f.close()
 
 			# Else the line must be the header
 			else:
@@ -115,7 +129,7 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 			count += 1
 			if count == limiter_val and limiter == True:
 				break
-	pass
+	return file_set
 
 # Reads matrix csv and returns a data structure (dictionary) for O(1) access time
 def read_matrix (csv_matrix):
@@ -155,6 +169,18 @@ def create_target_directory (barcode_table, read_two):
 		pass
 
 	return dir1
+
+# Opens and creates all fastq files for their groups
+def create_open_fastq (directory, barcode_dictionary):
+	pass
+
+# Closes all fastq files at the end 
+def close_all_files (files_set):
+	
+	for file in files_set:
+		file.close()
+			
+	pass
 
 # Make a dictionary of read1 where {barcode: coordinate} (USED FOR CELL_ASSIGN.PY)
 # REMOVE COUNT IN FINAL VERSION
