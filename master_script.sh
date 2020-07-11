@@ -26,6 +26,8 @@ not_exist=false #just for testing purposes
 
 
 # error handling inputs (LATER)
+
+# some newline so I can see my debugging output
 echo ""
 echo ""
 echo ""
