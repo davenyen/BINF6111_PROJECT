@@ -1,4 +1,6 @@
-# Functions used for cell_assign.py
+# Author:
+# Function: Holds functions for cell_assign.py
+# Version: 3
 
 import sys
 import collections
@@ -49,10 +51,9 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
     print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
     # Print New Line on Complete
     if iteration == total: 
-        print("\n\n")
+        print("\n\n\n")
 
 # Creates a fastq file with sequences that match read1 coordinates and are in sorted groups based on the target
-# PS REMOVE COUNT IN FINAL VERSION, only using now to limit output because output takes too long
 def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_barcodes, dir_name):
 
 	# read2 lines = 1013795888
@@ -62,13 +63,14 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 	# otherwise if another function runs through read2 get line count off them
 
 	file = open(read_two_file)
-	count = 0
-	num_lines = 1013795888
+	#read2_total = 200000
+	#num_lines = 1013795888
 	file_set = set()
+	#current_progress = 0
 
 	# Prints progress bar for cell_assign main function
-	print("")
-	printProgressBar(0, num_lines, prefix = 'Cell Assignment Progress:', suffix = 'Complete', length = 50)
+	#print("")
+	#printProgressBar(current_progress, read2_total, prefix = 'Cell Assignment Progress 2/2 - Assigning Cells:', suffix = 'Complete', length = 50)
 
 	with file:
 		for line in file:
@@ -89,21 +91,14 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
 									f = open(target_file, "w")
 									f.write("{}{}".format(header, sequence))
-
-									# remove bottom if error
-									#f = open(target_file, "a")
 								except:
 									f.write("{}{}".format(header, sequence))
-								
 								file_set.add(f)
-									
 								#f.close()
-								
 							# If output/(group) exists then append to it
 							else:
 								# if errors then add if else "if os.path.isfile("{}/{}/{}.fastq".format(dir_name, group_name, group_name)) == True:"
 								# Assumes since directory exists then file must too, so append for speed
-								# 
 								try:
 									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
 									f = open(target_file, "a")
@@ -111,28 +106,24 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 								except:
 									f.write("{}{}".format(header, sequence))
 								#f.close()
-
 							new_header = False
 				else:
 					# If the files have incorrect input change group_name below to 'barcode_matrix[read1_coordinates_barcodes[coordinates]]'
-					
 					#target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
 					#f = open(target_file, "a")
 					#f.write("{}".format(line))
 				
 					f.write("{}".format(line))
 					#f.close()
-
 			# Else the line must be the header
 			else:
 				header = line
 				coordinates = ':'.join(line.split(':')[4:6])
 				new_header = True
 
-			printProgressBar(count + 1, num_lines, prefix = 'Cell Assignment Progress:', suffix = 'Complete', length = 50)
-			count += 1
-			if count == limiter_val and limiter == True:
-				break
+			#printProgressBar(current_progress + 1, read2_total, prefix = 'Cell Assignment Progress:', suffix = 'Complete', length = 50)
+			#current_progress += 1
+
 	return file_set
 
 # Reads matrix csv and returns a data structure (dictionary) for O(1) access time
@@ -157,7 +148,7 @@ def read_matrix (csv_matrix):
 def create_target_directory (barcode_table, read_two):
 	read_two = read_two.split("/")[-1:]
 	read_two = read_two[0].split("L")[:-1]
-	dir1 = ("{}SORTED_GROUPS".format(read_two[0]))
+	dir1 = ("/Users/student/BINF6111_2020/test/output/{}SORTED_GROUPS".format(read_two[0]))
 
 	# Creates the directory for the sorted groups to go into
 	try:
@@ -174,16 +165,10 @@ def create_target_directory (barcode_table, read_two):
 
 	return dir1
 
-# Opens and creates all fastq files for their groups
-def create_open_fastq (directory, barcode_dictionary):
-	pass
-
 # Closes all fastq files at the end 
 def close_all_files (files_set):
-	
 	for file in files_set:
 		file.close()
-			
 	pass
 
 # Make a dictionary of read1 where {barcode: coordinate} (USED FOR CELL_ASSIGN.PY)
@@ -194,11 +179,10 @@ def coordinates_barcodes_dictionary (read1_file):
 	# Multi progress bars not implemented yet
 	read1_dictionary = {}
 	file = open(read1_file)
-	count = 0
-	#read1_num_lines = limiter_val
+	#current_progress = 0
+	#read1_total = 200000
 
-	# comment after
-	#printProgressBar(0, read1_num_lines, prefix = 'Cell Assignment Progress 1/2 - reading R1:', suffix = 'Complete', length = 50)
+	#printProgressBar(current_progress, read1_total, prefix = 'Cell Assignment Progress 1/2 - reading R1:', suffix = 'Complete', length = 50)
 
 	# Goes through read1 and saves barcode + coordinate into a dictionary for O(1)
 	with file:
@@ -218,11 +202,9 @@ def coordinates_barcodes_dictionary (read1_file):
 			if not i % 2:
 				consume(file, 2)
 
-			#printProgressBar(count + 1, read1_num_lines, prefix = 'Cell Assignment Progress 1/2 - reading R1:', suffix = 'Complete', length = 50)
-			count += 1
-			if count == limiter_val and limiter == True:
-				break
-
+			#printProgressBar(current_progress + 1, read1_total, prefix = 'Cell Assignment Progress 1/2 - reading R1:', suffix = 'Complete', length = 50)
+			#current_progress += 1
+	file.close()
 	return read1_dictionary
 
 # stolen from chelsea

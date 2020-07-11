@@ -1,19 +1,15 @@
 # Author: David Nguyen
 # Function: Assigns cells to groups/targets
+# Version: 3
 
 import sys
 import os
 import time
 import datetime
+from collections import Counter
 from functions import read_matrix, create_target_directory, create_sorted_fastq_file, coordinates_barcodes_dictionary, error_check, printProgressBar, close_all_files
 
 # NEED TO UPDATE TO READ MULTIPLE READS OF SAME EXPERIMENT!
-
-# CHANGE LIMITER TO FALSE FROM FUNCTIONS.PY FOR FULL OUTPUT (ATM LIMITED TO 200,000)
-# (CURRENTLY ON REFACTOR [3] VERSION)
-# (PRE-REFACTOR) TIME TAKEN TO RUN FULL OUTPUT ON OG_READ1 AND OG_READ2 = ETA 15 hours
-# (REFACTOR [2]) TIME TAKEN TO RUN FULL OUTPUT ON OG_READ1 AND OG_READ2 = ETA 1.5 hours?
-# (REFACTOR [3]) TIME TAKEN TO RUN FULL OUTPUT ON OG_READ1 AND OG_READ2 = ETA 
 
 # OPTIMISATION IDEAS: [DO 5 FOR MAXIMUM SPEED FOR SURE]
 # (1) Assume some barcodes are not in the matrix, then do [if barcode not in matrix: skip] (speeds up read1)
@@ -28,7 +24,7 @@ from functions import read_matrix, create_target_directory, create_sorted_fastq_
 # python3 cell_assign.py /Users/student/BINF6111_2020/data/test_barcode.csv /Users/student/BINF6111_2020/test/output/PilotCROP_C_1_S1_L001_R1_001.fastq /Users/student/BINF6111_2020/test/output/PilotCROP_C_1_S1_L001_R2_001.fastq
 
 # TEST RUN USE THIS:
-# `python3 cell_assign.py /Users/student/BINF6111_2020/data/test_barcode.csv /Users/student/BINF6111_2020/test/output/test_L001_R1_001.fastq /Users/student/BINF6111_2020/test/output/test_L001_R2_001.fastq 
+# python3 cell_assign.py /Users/student/BINF6111_2020/data/test_barcode.csv /Users/student/BINF6111_2020/test/output/test_L001_R1_001.fastq /Users/student/BINF6111_2020/test/output/test_L001_R2_001.fastq 
 
 # Read in matrix csv
 # - Associate barcode from read one to sequence in read 2
@@ -39,8 +35,8 @@ from functions import read_matrix, create_target_directory, create_sorted_fastq_
 
 # TO DO
 # (1) Add into master_script 
-# (2) Toggle num_lines to read files length
-# (3) Optimise runtime 
+# (2) files sorted by barcodes per target/group
+# (2) Optimise runtime 
 
 # MAIN
 if __name__ == '__main__':
@@ -58,11 +54,24 @@ if __name__ == '__main__':
 	barcode_table = read_matrix (csv_matrix)
 	dir_name = create_target_directory (barcode_table, read_two)
 	coordinates_barcodes = coordinates_barcodes_dictionary (read_one)
-	files_set = create_sorted_fastq_file (read_two, barcode_table, coordinates_barcodes, dir_name)
+	#files_set = create_sorted_fastq_file (read_two, barcode_table, coordinates_barcodes, dir_name)
+	#close_all_files (files_set)
 
-	#print(files_set)
+	# Counts number of cells with the same barcode
+	barcode_list = []
+	for coordinate, barcode in coordinates_barcodes.items():
+		barcode_list.append(barcode)
 
-	close_all_files (files_set)
+	barcode_frequency = Counter(barcode_list)
+	print(barcode_frequency)
+
+	#print(barcode_frequency)
+
+	# Makes a log file of runtimes
+	#runtime_log = os.system("touch CA_LOG.txt")
+	#log_file = open("CA_LOG.txt", "a")
+	#log_file.write("Runtime = {} h/m/s.\n".format(str(datetime.timedelta(seconds=time.time() - start_time))))
+	#log_file.close()
 
 	print("\nCELL ASSIGNMENT SUCCESSFUL")
 	print("Runtime = {} h/m/s.\n".format(str(datetime.timedelta(seconds=time.time() - start_time))))
