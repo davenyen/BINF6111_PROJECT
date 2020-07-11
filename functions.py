@@ -1,6 +1,6 @@
 # Author:
 # Function: Holds functions for cell_assign.py
-# Version: 3
+# Version: 1.4
 
 import sys
 import collections
@@ -10,57 +10,15 @@ import csv
 import mmap
 from itertools import islice
 
-# Global variable limiter (change to false to get full output) for cell_assign.py
-limiter = False
-limiter_val = 200000
-
 ############################################################################
 ################################ FUNCTIONS #################################
 ############################################################################
-
-# Read lines of file (need this for progress bar) (can choose to not run for speed?)
-def mapcount (filename):
-    f = open(filename, "r+")
-    buf = mmap.mmap(f.fileno(), 0)
-    lines = 0
-    readline = buf.readline
-
-    while readline():
-        lines += 1
-
-    return lines
-
-# Progress bar stolen from stack overflow
-# Print iterations progress
-def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        length      - Optional  : character length of bar (Int)
-        fill        - Optional  : bar fill character (Str)
-        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
-    """
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
-    # Print New Line on Complete
-    if iteration == total: 
-        print("\n\n\n")
 
 # Creates a fastq file with sequences that match read1 coordinates and are in sorted groups based on the target
 def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_barcodes, dir_name):
 
 	# read2 lines = 1013795888
 	# test lines = 200000
-	# can remove progress bar for speed as requires line count of file (which takes a WHILE to do)
-	# change num_lines to num_lines = mapcount(read_two_file) 
-	# otherwise if another function runs through read2 get line count off them
 
 	file = open(read_two_file)
 	file_set = set()
@@ -76,42 +34,37 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 					if coordinates in read1_coordinates_barcodes:
 						if read1_coordinates_barcodes[coordinates][9:] in barcode_matrix.keys():
 							group_name = barcode_matrix[read1_coordinates_barcodes[coordinates][9:]]
-							barcode_group = read1_coordinates_barcodes[coordinates][0:8]
+							#barcode_group = read1_coordinates_barcodes[coordinates][0:8]
 							# If file and directory doesnt exist then creates it
 							if os.path.isdir("{}/{}".format(dir_name, group_name)) == False:
 								os.makedirs("{}/{}".format(dir_name, group_name))
 								# Creates fastq file for respective group 
 								try:
-									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, barcode_group))
+									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, read2_indice))
 									f = open(target_file, "w")
 									f.write("{}{}".format(header, sequence))
 								except:
 									f.write("{}{}".format(header, sequence))
 								file_set.add(f)
-								#f.close()
 							# If output/(group) exists then append to it
 							else:
 								# if errors then add if else "if os.path.isfile("{}/{}/{}.fastq".format(dir_name, group_name, group_name)) == True:"
 								# Assumes since directory exists then file must too, so append for speed
 								try:
-									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, barcode_group))
+									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, read2_indice))
 									f = open(target_file, "a")
 									f.write("{}{}".format(header, sequence))
 								except:
 									f.write("{}{}".format(header, sequence))
-								#f.close()
 							new_header = False
 				else:
 					# If the files have incorrect input change group_name below to 'barcode_matrix[read1_coordinates_barcodes[coordinates]]'
-					#target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
-					#f = open(target_file, "a")
-					#f.write("{}".format(line))
 					f.write("{}".format(line))
-					#f.close()
 			# Else the line must be the header
 			else:
 				header = line
 				coordinates = ':'.join(line.split(':')[4:6])
+				read2_indice = line.split(':')[9].rstrip()
 				new_header = True
 
 	return file_set

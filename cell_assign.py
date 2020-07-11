@@ -1,13 +1,13 @@
 # Author: David Nguyen
 # Function: Assigns cells to groups/targets
-# Version: 3
+# Version: 1.3
 
 import sys
 import os
 import time
 import datetime
 from collections import Counter
-from functions import read_matrix, create_target_directory, create_sorted_fastq_file, coordinates_barcodes_dictionary, error_check, printProgressBar, close_all_files
+from functions import read_matrix, create_target_directory, create_sorted_fastq_file, coordinates_barcodes_dictionary, error_check, close_all_files
 
 # NEED TO UPDATE TO READ MULTIPLE READS OF SAME EXPERIMENT!
 
