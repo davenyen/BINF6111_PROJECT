@@ -35,8 +35,18 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 						if read1_coordinates_barcodes[coordinates][9:] in barcode_matrix.keys():
 							group_name = barcode_matrix[read1_coordinates_barcodes[coordinates][9:]]
 							#barcode_group = read1_coordinates_barcodes[coordinates][0:8]
-							# If file and directory doesnt exist then creates it
-							if os.path.isdir("{}/{}".format(dir_name, group_name)) == False:
+							# If file and directory exists then append to it
+							if os.path.isdir("{}/{}".format(dir_name, group_name)) == True:
+								# if errors then add if else "if os.path.isfile("{}/{}/{}.fastq".format(dir_name, group_name, group_name)) == True:"
+								# Assumes since directory exists then file must too, so append for speed
+								try:
+									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, read2_indice))
+									f = open(target_file, "a")
+									f.write("{}{}".format(header, sequence))
+								except:
+									f.write("{}{}".format(header, sequence))
+							# If output/(group) doesn't exist then makes it and writes the first 2 lines to it
+							else:
 								os.makedirs("{}/{}".format(dir_name, group_name))
 								# Creates fastq file for respective group 
 								try:
@@ -46,16 +56,6 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 								except:
 									f.write("{}{}".format(header, sequence))
 								file_set.add(f)
-							# If output/(group) exists then append to it
-							else:
-								# if errors then add if else "if os.path.isfile("{}/{}/{}.fastq".format(dir_name, group_name, group_name)) == True:"
-								# Assumes since directory exists then file must too, so append for speed
-								try:
-									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, read2_indice))
-									f = open(target_file, "a")
-									f.write("{}{}".format(header, sequence))
-								except:
-									f.write("{}{}".format(header, sequence))
 							new_header = False
 				else:
 					# If the files have incorrect input change group_name below to 'barcode_matrix[read1_coordinates_barcodes[coordinates]]'
