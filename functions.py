@@ -63,14 +63,7 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 	# otherwise if another function runs through read2 get line count off them
 
 	file = open(read_two_file)
-	#read2_total = 200000
-	#num_lines = 1013795888
 	file_set = set()
-	#current_progress = 0
-
-	# Prints progress bar for cell_assign main function
-	#print("")
-	#printProgressBar(current_progress, read2_total, prefix = 'Cell Assignment Progress 2/2 - Assigning Cells:', suffix = 'Complete', length = 50)
 
 	with file:
 		for line in file:
@@ -81,14 +74,15 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 					sequence = line
 					# GET TARGET/GROUP then write a fastq file with read2 data into group/directory
 					if coordinates in read1_coordinates_barcodes:
-						if read1_coordinates_barcodes[coordinates] in barcode_matrix.keys():
-							group_name = barcode_matrix[read1_coordinates_barcodes[coordinates]]
+						if read1_coordinates_barcodes[coordinates][9:] in barcode_matrix.keys():
+							group_name = barcode_matrix[read1_coordinates_barcodes[coordinates][9:]]
+							barcode_group = read1_coordinates_barcodes[coordinates][0:8]
 							# If file and directory doesnt exist then creates it
 							if os.path.isdir("{}/{}".format(dir_name, group_name)) == False:
 								os.makedirs("{}/{}".format(dir_name, group_name))
-								# Creates fastq file for respective group (can probably delete if statement?)
+								# Creates fastq file for respective group 
 								try:
-									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
+									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, barcode_group))
 									f = open(target_file, "w")
 									f.write("{}{}".format(header, sequence))
 								except:
@@ -100,7 +94,7 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 								# if errors then add if else "if os.path.isfile("{}/{}/{}.fastq".format(dir_name, group_name, group_name)) == True:"
 								# Assumes since directory exists then file must too, so append for speed
 								try:
-									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
+									target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, barcode_group))
 									f = open(target_file, "a")
 									f.write("{}{}".format(header, sequence))
 								except:
@@ -112,7 +106,6 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 					#target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
 					#f = open(target_file, "a")
 					#f.write("{}".format(line))
-				
 					f.write("{}".format(line))
 					#f.close()
 			# Else the line must be the header
@@ -120,9 +113,6 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 				header = line
 				coordinates = ':'.join(line.split(':')[4:6])
 				new_header = True
-
-			#printProgressBar(current_progress + 1, read2_total, prefix = 'Cell Assignment Progress:', suffix = 'Complete', length = 50)
-			#current_progress += 1
 
 	return file_set
 
@@ -172,17 +162,11 @@ def close_all_files (files_set):
 	pass
 
 # Make a dictionary of read1 where {barcode: coordinate} (USED FOR CELL_ASSIGN.PY)
-# REMOVE COUNT IN FINAL VERSION
 def coordinates_barcodes_dictionary (read1_file):
 
 	# read1_numlines = 1013795888 (same as read2 apparently?) (half actually because we only rad barcode + coord) 506897944
-	# Multi progress bars not implemented yet
 	read1_dictionary = {}
 	file = open(read1_file)
-	#current_progress = 0
-	#read1_total = 200000
-
-	#printProgressBar(current_progress, read1_total, prefix = 'Cell Assignment Progress 1/2 - reading R1:', suffix = 'Complete', length = 50)
 
 	# Goes through read1 and saves barcode + coordinate into a dictionary for O(1)
 	with file:
@@ -191,19 +175,17 @@ def coordinates_barcodes_dictionary (read1_file):
 			# check line if it is header, save to maybe print later
 			if line[0] == "@":
 				coordinates = ':'.join(line.split(':')[4:6])
-
+				barcode = ''.join(line.split(':')[9]).rstrip() + ":"
 			# if it's not a header must be a sequence
 			else:
-				# barcode is first 16 bp
-				barcode = ''.join(line[0:16])
+				# barcode is first 16 bp and idice is first 6
+				barcode += line[0:16]
 				read1_dictionary[coordinates] = barcode
 				
 			# will skip lines 3 and 4 for performance
 			if not i % 2:
 				consume(file, 2)
 
-			#printProgressBar(current_progress + 1, read1_total, prefix = 'Cell Assignment Progress 1/2 - reading R1:', suffix = 'Complete', length = 50)
-			#current_progress += 1
 	file.close()
 	return read1_dictionary
 

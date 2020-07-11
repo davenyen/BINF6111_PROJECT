@@ -54,24 +54,14 @@ if __name__ == '__main__':
 	barcode_table = read_matrix (csv_matrix)
 	dir_name = create_target_directory (barcode_table, read_two)
 	coordinates_barcodes = coordinates_barcodes_dictionary (read_one)
-	#files_set = create_sorted_fastq_file (read_two, barcode_table, coordinates_barcodes, dir_name)
-	#close_all_files (files_set)
-
-	# Counts number of cells with the same barcode
-	barcode_list = []
-	for coordinate, barcode in coordinates_barcodes.items():
-		barcode_list.append(barcode)
-
-	barcode_frequency = Counter(barcode_list)
-	print(barcode_frequency)
-
-	#print(barcode_frequency)
+	files_set = create_sorted_fastq_file (read_two, barcode_table, coordinates_barcodes, dir_name)
+	close_all_files (files_set)
 
 	# Makes a log file of runtimes
-	#runtime_log = os.system("touch CA_LOG.txt")
-	#log_file = open("CA_LOG.txt", "a")
-	#log_file.write("Runtime = {} h/m/s.\n".format(str(datetime.timedelta(seconds=time.time() - start_time))))
-	#log_file.close()
+	runtime_log = os.system("touch CA_LOG.txt")
+	log_file = open("CA_LOG.txt", "a")
+	log_file.write("Runtime = {} h/m/s. Data set = {}\n".format(str(datetime.timedelta(seconds=time.time() - start_time)), dir_name))
+	log_file.close()
 
 	print("\nCELL ASSIGNMENT SUCCESSFUL")
 	print("Runtime = {} h/m/s.\n".format(str(datetime.timedelta(seconds=time.time() - start_time))))
