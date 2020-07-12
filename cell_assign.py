@@ -11,6 +11,8 @@ from functions import read_matrix, create_target_directory, create_sorted_fastq_
 
 # NEED TO UPDATE TO READ MULTIPLE READS OF SAME EXPERIMENT!
 
+# https://stackoverflow.com/questions/44637844/cpu-usage-of-python-script (research cpu time for threading)
+
 # OPTIMISATION IDEAS:
 # (1) Assume some barcodes are not in the matrix, then do [if barcode not in matrix: skip] (speeds up read1) [ACTIVE]
 # (2) Assume coordinates do not always match, then do [if coordinates not in read1: skip] (speeds up read2) [ACTIVE]
