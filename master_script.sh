@@ -44,55 +44,55 @@ read_regex='.+_(R[12])_.+.fastq.gz$'
 # en_regex='(test)_.+_L[0-9]{3}_.+'
 # read_regex='test_.+_(R[12])_.+.fastq$'
 for fastq in ${data_path}/*
-    do
-    
-    # grab name of experiment (everything before the lane number)
-    if [[ ${fastq} =~ ${en_regex} ]]
-    then
-        experiment_name=$(basename ${BASH_REMATCH[1]})
-    else
-        echo "can't identify experiment name, will name experiment as 'sample_1'"
-        experiment_name='sample_1'   
-    fi
+	do
+	
+	# grab name of experiment (everything before the lane number)
+	if [[ ${fastq} =~ ${en_regex} ]]
+	then
+		experiment_name=$(basename ${BASH_REMATCH[1]})
+	else
+		echo "can't identify experiment name, will name experiment as 'sample_1'"
+		experiment_name='sample_1'   
+	fi
 
-    # Steps are:
-        # 1) check which read file
-        # 2) decompress file
-        # 3) process reads using python to open file, look for cell barcodes, write reads to new_files
+	# Steps are:
+		# 1) check which read file
+		# 2) decompress file
+		# 3) process reads using python to open file, look for cell barcodes, write reads to new_files
 
-    # ability to resume the pipeline halfway, so detect files in output folder already
+	# ability to resume the pipeline halfway, so detect files in output folder already
 
-    # check file is a read file
-    if [[ ${fastq} =~ ${read_regex} ]]
-    then
-        file=$(basename ${fastq} .gz)
-        if ${verbose}; then echo "Reading ${file}"; fi
+	# check file is a read file
+	if [[ ${fastq} =~ ${read_regex} ]]
+	then
+		file=$(basename ${fastq} .gz)
+		if ${verbose}; then echo "Reading ${file}"; fi
 
-        if ${not_exist}
-        then
-            # rsync it over, this way is safer in case fastq is huge
-            rsync -avz ${fastq} ${output_path}
-            
-            # uncompress file in place
-            gunzip ${output_path}/${file}.qz
-        fi
+		if ${not_exist}
+		then
+			# rsync it over, this way is safer in case fastq is huge
+			rsync -avz ${fastq} ${output_path}
+			
+			# uncompress file in place
+			gunzip ${output_path}/${file}.qz
+		fi
 
-        # process read 1 file for the cell barcodes
-        if [[ 'R1' == ${BASH_REMATCH[1]} ]]
-        then
-            experiment_name='test'
-            python3 parse_fastq.py ${output_path}/${experiment_name}_*_R1_001.fastq \
-            ${list_path} ${experiment_name} ${BASH_REMATCH[1]}
-        fi
+		# process read 1 file for the cell barcodes
+		if [[ 'R1' == ${BASH_REMATCH[1]} ]]
+		then
+			experiment_name='test'
+			python3 parse_fastq.py ${output_path}/${experiment_name}_*_R1_001.fastq \
+			${list_path} ${experiment_name} ${BASH_REMATCH[1]}
+		fi
 
-        # delete full fastq after we are done with testing phase
+		# delete full fastq after we are done with testing phase
 
-        
-    # else, go to the next file
-    else  
-        if ${verbose}; then echo "Not a read file"; fi
-        continue
-    fi
+		
+	# else, go to the next file
+	else  
+		if ${verbose}; then echo "Not a read file"; fi
+		continue
+	fi
 
 done
 

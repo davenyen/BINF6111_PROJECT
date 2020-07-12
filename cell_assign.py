@@ -43,17 +43,17 @@ if __name__ == '__main__':
 
 	# VARIABLES
 	csv_matrix = sys.argv[1]
-	read_one = sys.argv[2]
+	filtered_read_one = sys.argv[2]
 	read_two = sys.argv[3]
 	start_time = time.time()
 	
 	# Run error checking
-	error_check (csv_matrix, read_one, read_two)
+	error_check (csv_matrix, filtered_read_one, read_two)
 	
 	# Main functions
 	barcode_table = read_matrix (csv_matrix)
 	dir_name = create_target_directory (barcode_table, read_two)
-	coordinates_barcodes = coordinates_barcodes_dictionary (read_one)
+	coordinates_barcodes = coordinates_barcodes_dictionary (filtered_read_one)
 	files_set = create_sorted_fastq_file (read_two, barcode_table, coordinates_barcodes, dir_name)
 	close_all_files (files_set)
 

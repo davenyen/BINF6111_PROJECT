@@ -1,5 +1,5 @@
 # Author:
-# Function: Holds functions for cell_assign.py
+# Function: Holds functions for cell_assign.py and parse_fastq
 # Version: 1.4
 
 import sys
@@ -142,7 +142,61 @@ def coordinates_barcodes_dictionary (read1_file):
 	file.close()
 	return read1_dictionary
 
-# stolen from chelsea
+# DUPLICATE FUNCTION
+# SUGGESTION IS TO REPLACE ABOVE FUNCTION AND JUST READ IN DICTIONARY CREATED
+# IN parse_read1_fastq.py
+def filter_read_one (read_one, cell_barcode_coordinates_table, filtered_read_one):
+	# x-y coordinates to barcode dictionary to link read 1 and read 2:
+	read1_dictionary = {}
+	barcodes = cell_barcode_coordinates_table
+	fastq_to_append = open(filtered_read_one, "a")
+	file = open(read_one)
+
+	with file:
+		for i, line in enumerate(file, 1):
+			
+			# check line if it is header, save to maybe print later
+			if line[0] == "@":
+				coordinates = ':'.join(line.split(':')[4:6])
+				header = line
+
+			# if it's not a header must be a sequence
+			else:
+				# barcode is first 16 bp
+				barcode = ''.join(line[0:16])
+
+				# check if barcode exists in dictionary
+				try:
+					group_type = barcodes[barcode]
+					# print(group_type)S
+					read1_dictionary[coordinates] = barcode
+					fastq_to_append.write(header)
+					fastq_to_append.write(line)
+				
+				# else, isn't a target barcode
+				except:
+					pass
+				
+			# will skip lines 3 and 4 for performance
+			if not i % 2:
+				consume(file, 2)
+	file.close()
+	return read1_dictionary		
+
+
+
+# Write out dictioary to be read in by other python script
+def write_out_dictionary_csv (cell_barcode_coordinates_table, dictionary_path):
+	writer = csv.writer(open(dictionary_path, "w"))
+	for key, val in cell_barcode_coordinates_table.items():
+		writer.writerow([key, val])
+
+
+
+# This will allow iterating through the only header and sequence lines
+# to improve performance
+# Function taken from the Python Package Index:
+# https://docs.python.org/3/library/itertools.html#itertools-recipes
 def consume(iterator, n=None):
     "Advance the iterator n-steps ahead. If n is None, consume entirely."
     # Use functions that consume iterators at C speed.
