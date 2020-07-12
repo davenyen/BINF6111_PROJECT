@@ -8,28 +8,54 @@
     # needs to output to the same sub-directory
     # output needs to be BAM
 
+#Reference genome "/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index"
 EXPERIMENT_DIREC=$1
 REFERENCE_GENOME=$2
 STAR_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/STAR-2.5.2b/bin/MacOSX_x86_64/STAR"
 
-i=0
-SUB_DIRECS=$(ls "$1") # get all the names of the sub-directories to go through
-# iterate through all sub-directories and perform STAR alignment on each fastq file
-for direc in $SUB_DIRECS
-do
-    if test $i -eq 3
-    then
-        break
-    fi
-    i=$((i+1))
-    "$STAR_RUN" --runThreadN 4 \
+BARCODE="ACCCTCCA"
+ADAPTOR="GATCGGAAGAGCACACGTCTGAACTCCAGTCAC${BARCODE}ATCTCGTATGCCGTCTTCTGCTTG"
+"$STAR_RUN" --runThreadN 4 \
     --genomeDir "$REFERENCE_GENOME" \
-    --readFilesIn "${EXPERIMENT_DIREC}/${direc}/${direc}.fastq" \
+    --readFilesIn "${EXPERIMENT_DIREC}/ARPC2/${BARCODE}.fastq" \
+    --clip3pAdapterSeq "$ADAPTOR" \
     --outSAMtype BAM Unsorted SortedByCoordinate \
-    --outWigType bedGraph \
-    --outFileNamePrefix "${EXPERIMENT_DIREC}/${direc}/"
-    /Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools index -b "${EXPERIMENT_DIREC}/${direc}/Aligned.sortedByCoord.out.bam"
-done
+    --outFileNamePrefix "${EXPERIMENT_DIREC}/ARPC2/"\
+    --outSJfilterOverhangMin 15 15 15 15 \
+	--alignSJoverhangMin 15 \
+	--alignSJDBoverhangMin 15 \
+	--outFilterMultimapNmax 1 \
+	--outFilterScoreMin 1 \
+	--outFilterMatchNmin 1 \
+	--outFilterMismatchNmax 2 \
+	--outFilterScoreMinOverLread 0.3 \
+	--outFilterMatchNminOverLread 0.3 \
+	--chimSegmentMin 15 \
+	--chimScoreMin 15 \
+	--chimScoreSeparation 10 \
+	--chimJunctionOverhangMin 15
+    /Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools index -b "${EXPERIMENT_DIREC}/ARPC2/Aligned.sortedByCoord.out.bam"
+    /Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools view -h -o "${EXPERIMENT_DIREC}/ARPC2/out.sam" "${EXPERIMENT_DIREC}/ARPC2/Aligned.sortedByCoord.out.bam"
+
+#i=0
+#SUB_DIRECS=$(ls "$1") # get all the names of the sub-directories to go through
+# iterate through all sub-directories and perform STAR alignment on each fastq file
+#for direc in $SUB_DIRECS
+#do
+#    if test $i -eq 3
+#    then
+#        break
+#    fi
+#    i=$((i+1))
+#    "$STAR_RUN" --runThreadN 4 \
+#    --genomeDir "$REFERENCE_GENOME" \
+#    --readFilesIn "${EXPERIMENT_DIREC}/${direc}/${direc}.fastq" \
+#    --outSAMtype BAM Unsorted SortedByCoordinate \
+#    --outWigType bedGraph \
+#   --outFileNamePrefix "${EXPERIMENT_DIREC}/${direc}/"
+#    /Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools index -b "${EXPERIMENT_DIREC}/${direc}/Aligned.sortedByCoord.out.bam"
+    # converts the bam file to bai
+#done
 
 # TESTING OF DIFFERENT STAR PARAMETERS
 
