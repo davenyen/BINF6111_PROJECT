@@ -148,7 +148,7 @@ def filter_read_one (read_one, cell_barcode_coordinates_table, filtered_read_one
 	# x-y coordinates to barcode dictionary to link read 1 and read 2:
 	read1_dictionary = {}
 	barcodes = cell_barcode_coordinates_table
-	fastq_to_append = open(filtered_read_one, "a")
+	fastq_to_append = open(filtered_read_one, "a+")
 	file = open(read_one)
 
 	with file:
@@ -186,7 +186,7 @@ def filter_read_one (read_one, cell_barcode_coordinates_table, filtered_read_one
 
 # Append to a dictionary to be read in by other python script
 def write_out_dictionary_csv (cell_barcode_coordinates_table, dictionary_path):
-	writer = csv.writer(open(dictionary_path, "a"))
+	writer = csv.writer(open(dictionary_path, "a+"))
 	for key, val in cell_barcode_coordinates_table.items():
 		writer.writerow([key, val])
 

@@ -48,8 +48,9 @@ if __name__ == '__main__':
 	write_out_dictionary_csv (cell_barcode_coordinates_table, dictionary_path)
 
 # Makes a log file of runtimes
-	log_file = open(os.path.dirname(read_one) + "/log.txt", "a")
+	log_file = open(os.path.dirname(read_one) + "/log.txt", "a+")
+	log_file.write(str(datetime.datetime.now()))
 	run_time = str(datetime.timedelta(seconds=time.time() - start_time))
-	log_file.write("Runtime = {} h/m/s.\n".format(run_time))
+	log_file.write("\nRuntime = {} h/m/s.\n".format(run_time))
 	log_file.write("PARSE READ ONE SUCCESSFUL\n")
 	log_file.close()

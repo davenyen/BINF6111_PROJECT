@@ -20,6 +20,11 @@
 # list_path='/Users/student/BINF6111_2020/test/test_list_barcodes.txt'
 # output_path='/Users/student/BINF6111_2020/test/output'
 
+# data_path='/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1'
+# matrix_path='/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv'
+# list_path='/Users/student/BINF6111_2020/test/check_master_script/barcodesA1.csv'
+# output_path='/Users/student/BINF6111_2020/test/check_master_script'
+
 # VARIABLES
 data_path=${1}
 matrix_path=${2}
@@ -41,7 +46,7 @@ not_exist=false #just for testing purposes
 
 # get files with the reads in them from directory
 en_regex='(.+)_L[0-9]{3}_.+'
-read_regex='.+_(R[12])_.+.fastq.gz$'
+read_regex='.+_(L[0-9]{3})_(R[12])_.+.fastq.gz$'
 
 # # test
 # en_regex='(test)_.+_L[0-9]{3}_.+'
@@ -79,11 +84,11 @@ for fastq in ${data_path}/*
 		fi
 
 		# process read 1 file for the cell barcodes
-		if [[ 'R1' == ${BASH_REMATCH[1]} ]]
+		if [[ 'R1' == ${BASH_REMATCH[2]} ]] 
 		then
 			experiment_name='test'
-			python3 parse_fastq.py ${output_path}/${experiment_name}_*_R1_001.fastq \
-			${list_path} ${experiment_name} ${BASH_REMATCH[1]}
+			python3 parse_read_one.py ${output_path}/*${BASH_REMATCH[1]}_R1*.fastq \
+			${list_path} ${experiment_name}
 		fi
 
 		# delete full fastq after we are done with testing phase
