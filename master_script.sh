@@ -5,6 +5,13 @@
 # ./master_script.sh ${data_path} ${list_path} ${matrix_path} ${output_path}
 #
 
+# TODO
+# getopts to handle argument flags 
+# error handling for arguments 
+# (OPTIONAL) ability to resume the pipeline halfway, so detect 
+#	files in output folder already
+#
+
 ## PROCCESSING INPUT
 
 # test inputs
@@ -13,23 +20,19 @@
 # list_path='/Users/student/BINF6111_2020/test/test_list_barcodes.txt'
 # output_path='/Users/student/BINF6111_2020/test/output'
 
-# set variables
+# VARIABLES
 data_path=${1}
 matrix_path=${2}
 list_path=${3}
 output_path=${4}
 ref_genome=${5}
+log=${output_path}/log.txt
 verbose=true # fix this later, use getopts to parse variable options!
 not_exist=false #just for testing purposes
 
-# flag if fastq are already uncompressed
 
 
 # error handling inputs (LATER)
-echo ""
-echo ""
-echo ""
-echo ""
 
 # translate groups into cell barcodes (LATER/optional)
 
@@ -51,7 +54,7 @@ for fastq in ${data_path}/*
 	then
 		experiment_name=$(basename ${BASH_REMATCH[1]})
 	else
-		echo "can't identify experiment name, will name experiment as 'sample_1'"
+		echo "can't identify experiment name, will name experiment as 'sample_1'" >> ${log}
 		experiment_name='sample_1'   
 	fi
 
@@ -60,13 +63,11 @@ for fastq in ${data_path}/*
 		# 2) decompress file
 		# 3) process reads using python to open file, look for cell barcodes, write reads to new_files
 
-	# ability to resume the pipeline halfway, so detect files in output folder already
-
 	# check file is a read file
 	if [[ ${fastq} =~ ${read_regex} ]]
 	then
 		file=$(basename ${fastq} .gz)
-		if ${verbose}; then echo "Reading ${file}"; fi
+		if ${verbose}; then echo "Reading ${file}" >> ${log}; fi
 
 		if ${not_exist}
 		then
@@ -90,14 +91,14 @@ for fastq in ${data_path}/*
 		
 	# else, go to the next file
 	else  
-		if ${verbose}; then echo "Not a read file"; fi
+		if ${verbose}; then echo "Not a read file" >> ${log}; fi
 		continue
 	fi
 
 done
 
 # print if verbose
-if ${verbose}; then echo "Running pipeline on experiment: ${experiment_name}"; fi
+if ${verbose}; then echo "Running pipeline on experiment: ${experiment_name}" >> ${log}; fi
 
 
 
@@ -116,3 +117,6 @@ if ${verbose}; then echo "Running pipeline on experiment: ${experiment_name}"; f
  #${ref_genome} ${output_path}
 
 ## TIDYING OUTPUT (output desired formats, clean temp files)
+
+echo "===========================================================" >> ${log}
+echo "" >> ${log}

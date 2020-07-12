@@ -21,10 +21,10 @@ from functions import read_matrix, create_target_directory, create_sorted_fastq_
 # Output: sorted_target_groups/{lots of groups}/group.fastq (for each group)
 
 # Sample run cmd line:
-# python3 cell_assign.py /Users/student/BINF6111_2020/data/test_barcode.csv /Users/student/BINF6111_2020/test/output/PilotCROP_C_1_S1_L001_R1_001.fastq /Users/student/BINF6111_2020/test/output/PilotCROP_C_1_S1_L001_R2_001.fastq
+# python3 cell_assign.py /symlinks/barcode_a1.csv symlinks/PilotCROP_L1_R1.fastq symlinks/PilotCROP_L1_R2.fastq
 
 # TEST RUN USE THIS:
-# python3 cell_assign.py /Users/student/BINF6111_2020/data/test_barcode.csv /Users/student/BINF6111_2020/test/output/test_L001_R1_001.fastq /Users/student/BINF6111_2020/test/output/test_L001_R2_001.fastq 
+# python3 cell_assign.py symlinks/barcode_a1.csv symlinks/TEST_L1_R1.fastq symlinks/TEST_L1_R2.fastq 
 
 # Read in matrix csv
 # - Associate barcode from read one to sequence in read 2

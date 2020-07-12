@@ -1,5 +1,4 @@
 Runtime = 3:26:07.394340 h/m/s. (Read1 and Read2 Lane1)
 Runtime = 0:00:26.415054 h/m/s. Data set = /Users/student/BINF6111_2020/test/output/test_SORTED_GROUPS (read1 indices)
 Runtime = 0:00:20.498498 h/m/s. Data set = /Users/student/BINF6111_2020/test/output/test_SORTED_GROUPS (read2 indices)
-Runtime = 0:00:26.601076 h/m/s. Data set = /Users/student/BINF6111_2020/test/output/test_SORTED_GROUPS
-Runtime = 0:00:25.834464 h/m/s. Data set = /Users/student/BINF6111_2020/test/output/test_SORTED_GROUPS
+Runtime = 0:00:46.409849 h/m/s. Data set = /Users/student/BINF6111_2020/test/sample_input/TEST_SORTED_GROUPS (biased cause background run)

@@ -34,7 +34,6 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_b
 					if coordinates in read1_coordinates_barcodes:
 						if read1_coordinates_barcodes[coordinates][9:] in barcode_matrix.keys():
 							group_name = barcode_matrix[read1_coordinates_barcodes[coordinates][9:]]
-							#barcode_group = read1_coordinates_barcodes[coordinates][0:8]
 							# If file and directory exists then append to it
 							if os.path.isdir("{}/{}".format(dir_name, group_name)) == True:
 								# if errors then add if else "if os.path.isfile("{}/{}/{}.fastq".format(dir_name, group_name, group_name)) == True:"
@@ -91,7 +90,7 @@ def read_matrix (csv_matrix):
 def create_target_directory (barcode_table, read_two):
 	read_two = read_two.split("/")[-1:]
 	read_two = read_two[0].split("L")[:-1]
-	dir1 = ("/Users/student/BINF6111_2020/test/output/{}SORTED_GROUPS".format(read_two[0]))
+	dir1 = ("/Users/student/BINF6111_2020/test/sample_input/{}SORTED_GROUPS".format(read_two[0]))
 
 	# Creates the directory for the sorted groups to go into
 	try:
@@ -168,10 +167,10 @@ def filter_read_one (read_one, cell_barcode_coordinates_table, filtered_read_one
 				# check if barcode exists in dictionary
 				try:
 					group_type = barcodes[barcode]
-					# print(group_type)S
-					read1_dictionary[coordinates] = barcode
-					fastq_to_append.write(header)
-					fastq_to_append.write(line)
+					if group_type:
+						read1_dictionary[coordinates] = barcode
+						fastq_to_append.write(header)
+						fastq_to_append.write(line)
 				
 				# else, isn't a target barcode
 				except:
@@ -185,9 +184,9 @@ def filter_read_one (read_one, cell_barcode_coordinates_table, filtered_read_one
 
 
 
-# Write out dictioary to be read in by other python script
+# Append to a dictionary to be read in by other python script
 def write_out_dictionary_csv (cell_barcode_coordinates_table, dictionary_path):
-	writer = csv.writer(open(dictionary_path, "w"))
+	writer = csv.writer(open(dictionary_path, "a"))
 	for key, val in cell_barcode_coordinates_table.items():
 		writer.writerow([key, val])
 
