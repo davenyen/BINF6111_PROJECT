@@ -8,19 +8,34 @@
     # needs to output to the same sub-directory
     # output needs to be BAM
 
+# if there is a distinct number of adaptor/barcode sequences:
+# for each adaptor sequence
+    # perform STAR alignment on multiple fastq files
+    # ie. every fastq file in each sub-direc associated
+    # with the current adaptor sequence and provide
+    # read groups for each different cell group
+    # generates one BAM file 
+    # split BAM file into multiple BAM files by
+    # read groups: using samtools split
+    # move each BAM file into its cell group directory
+
+# once all smaller BAM files are in each sub-directory:
+# merge all the BAM files together into one
+
 #Reference genome "/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index"
 EXPERIMENT_DIREC=$1
 REFERENCE_GENOME=$2
 STAR_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/STAR-2.5.2b/bin/MacOSX_x86_64/STAR"
 
-BARCODE="ACCCTCCA"
+BARCODE="AACCTCCT"
 ADAPTOR="GATCGGAAGAGCACACGTCTGAACTCCAGTCAC${BARCODE}ATCTCGTATGCCGTCTTCTGCTTG"
 "$STAR_RUN" --runThreadN 4 \
     --genomeDir "$REFERENCE_GENOME" \
-    --readFilesIn "${EXPERIMENT_DIREC}/ARPC2/${BARCODE}.fastq" \
+    --readFilesIn "${EXPERIMENT_DIREC}/ATP1B3/${BARCODE}.fastq","${EXPERIMENT_DIREC}/BLM/${BARCODE}.fastq" \
+    --outSAMattrRGline ID:ATP1B3 , ID:BLM \
     --clip3pAdapterSeq "$ADAPTOR" \
-    --outSAMtype BAM Unsorted SortedByCoordinate \
-    --outFileNamePrefix "${EXPERIMENT_DIREC}/ARPC2/"\
+    --outSAMtype SAM \
+    --outFileNamePrefix "${EXPERIMENT_DIREC}/"\
     --outSJfilterOverhangMin 15 15 15 15 \
 	--alignSJoverhangMin 15 \
 	--alignSJDBoverhangMin 15 \
@@ -34,8 +49,8 @@ ADAPTOR="GATCGGAAGAGCACACGTCTGAACTCCAGTCAC${BARCODE}ATCTCGTATGCCGTCTTCTGCTTG"
 	--chimScoreMin 15 \
 	--chimScoreSeparation 10 \
 	--chimJunctionOverhangMin 15
-    /Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools index -b "${EXPERIMENT_DIREC}/ARPC2/Aligned.sortedByCoord.out.bam"
-    /Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools view -h -o "${EXPERIMENT_DIREC}/ARPC2/out.sam" "${EXPERIMENT_DIREC}/ARPC2/Aligned.sortedByCoord.out.bam"
+    #/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools index -b "${EXPERIMENT_DIREC}/ARPC2/Aligned.sortedByCoord.out.bam"
+    #/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools view -h -o "${EXPERIMENT_DIREC}/ARPC2/out.sam" "${EXPERIMENT_DIREC}/ARPC2/Aligned.sortedByCoord.out.bam"
 
 #i=0
 #SUB_DIRECS=$(ls "$1") # get all the names of the sub-directories to go through
