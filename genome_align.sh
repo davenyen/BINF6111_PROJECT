@@ -20,6 +20,9 @@
     # generates one BAM file 
     # split BAM file into multiple BAM files by
     # read groups: using samtools split
+        # samtools split Aligned.out.sam -f '%!.{$barcode}'
+        # %! means the read group name so the file will be
+        # named with each cell group
     # move each BAM file into its cell group directory
 
 # once all smaller BAM files are in each sub-directory:
