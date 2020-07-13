@@ -3,6 +3,9 @@
 # commandline arguments: path to main directory with cell group outputs,
                         # path to directory with genome index
 
+# ERROR HANDLING
+
+
 # for each sub-directory in main experimental directory
     # perform STAR alignment on fastq file in there
     # needs to output to the same sub-directory
@@ -27,15 +30,32 @@ EXPERIMENT_DIREC=$1
 REFERENCE_GENOME=$2
 STAR_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/STAR-2.5.2b/bin/MacOSX_x86_64/STAR"
 
-BARCODE="AACCTCCT"
-ADAPTOR="GATCGGAAGAGCACACGTCTGAACTCCAGTCAC${BARCODE}ATCTCGTATGCCGTCTTCTGCTTG"
+SUB_DIRECS=$(ls "$EXPERIMENT_DIREC") # get all the names of the sub-directories to go through
+FIRST_DIREC=$(echo "$SUB_DIRECS" | head -n1)
+LIB_BARCODE_FILES=$(ls "${EXPERIMENT_DIREC}/${FIRST_DIREC}")
+LIB_BARCODES=$(echo "$LIB_BARCODE_FILES" | sed 's/\.fastq//g')
+
+for barcode in $LIB_BARCODES
+do
+    READ_FILES=""
+    IDS=""
+    for direc in $SUB_DIRECS
+    do
+        READ_FILES="${READ_FILES}${EXPERIMENT_DIREC}/${direc}/${barcode}.fastq,"
+        IDS="${IDS}ID:${direc} , "
+    done
+    READ_FILES=$(echo "$READ_FILES" | sed 's/,$//')
+    IDS=$(echo "$IDS" | sed 's/ , $//')
+done
+
+ADAPTOR="GATCGGAAGAGCACACGTCTGAACTCCAGTCAC${barcode}ATCTCGTATGCCGTCTTCTGCTTG"
 "$STAR_RUN" --runThreadN 4 \
     --genomeDir "$REFERENCE_GENOME" \
-    --readFilesIn "${EXPERIMENT_DIREC}/ATP1B3/${BARCODE}.fastq","${EXPERIMENT_DIREC}/BLM/${BARCODE}.fastq" \
-    --outSAMattrRGline ID:ATP1B3 , ID:BLM \
+    --readFilesIn "$READ_FILES" \
+    --outSAMattrRGline $IDS \
     --clip3pAdapterSeq "$ADAPTOR" \
     --outSAMtype SAM \
-    --outFileNamePrefix "${EXPERIMENT_DIREC}/"\
+    --outFileNamePrefix "${EXPERIMENT_DIREC}/" \
     --outSJfilterOverhangMin 15 15 15 15 \
 	--alignSJoverhangMin 15 \
 	--alignSJDBoverhangMin 15 \
