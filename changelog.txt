@@ -1,0 +1,4 @@
+Version 1.4:
+    - cell_assign.py -> Added Indices argument
+    - functions.py   -> Changed output file names to {target}/{target}_{indice}.fastq
+                     -> R1 functionality, filters unwanted indices

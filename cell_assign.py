@@ -1,15 +1,13 @@
 # Author: David Nguyen
 # Function: Assigns cells to groups/targets
-# Version: 1.3
+# Version: 1.4
 
 import sys
 import os
 import time
 import datetime
 from collections import Counter
-from functions import read_matrix, create_target_directory, create_sorted_fastq_file, coordinates_barcodes_dictionary, error_check, close_all_files
-
-# NEED TO UPDATE TO READ MULTIPLE READS OF SAME EXPERIMENT!
+from functions import read_matrix, create_target_directory, create_sorted_fastq_file, coordinates_barcodes_dictionary, error_check, close_all_files, create_indices_list
 
 # https://stackoverflow.com/questions/44637844/cpu-usage-of-python-script (research cpu time for threading)
 
@@ -23,10 +21,10 @@ from functions import read_matrix, create_target_directory, create_sorted_fastq_
 # Output: sorted_target_groups/{lots of groups}/group.fastq (for each group)
 
 # Sample run cmd line:
-# python3 cell_assign.py symlinks/barcode_a1.csv symlinks/PilotCROP_L1_R1.fastq symlinks/PilotCROP_L1_R2.fastq
+# python3 cell_assign.py symlinks/barcode_a1.csv symlinks/PilotCROP_L1_R1.fastq symlinks/PilotCROP_L1_R2.fastq symlinks/Indices_A1.txt
 
 # TEST RUN USE THIS:
-# python3 cell_assign.py symlinks/barcode_a1.csv symlinks/SML_TEST_L1_R1.fastq symlinks/SML_TEST_L1_R2.fastq 
+# python3 cell_assign.py symlinks/barcode_a1.csv symlinks/SML_TEST_L1_R1.fastq symlinks/SML_TEST_L1_R2.fastq symlinks/Indices_A1.txt
 
 # Read in matrix csv
 # - Associate barcode from read one to sequence in read 2
@@ -46,16 +44,18 @@ if __name__ == '__main__':
 	csv_matrix = sys.argv[1]
 	filtered_read_one = sys.argv[2]
 	read_two = sys.argv[3]
+	indices = sys.argv[4]
 	start_time = time.time()
 	
 	# Run error checking
-	error_check (csv_matrix, filtered_read_one, read_two)
+	error_check (csv_matrix, filtered_read_one, read_two, indices)
 	
 	# Main functions
 	barcode_matrix = read_matrix (csv_matrix)
+	indices_list = create_indices_list (indices)
 	dir_name = create_target_directory (barcode_matrix, read_two)
-	coordinates_barcodes = coordinates_barcodes_dictionary (filtered_read_one, barcode_matrix)
-	files_set = create_sorted_fastq_file (read_two, barcode_matrix, coordinates_barcodes, dir_name)
+	coordinates_barcodes = coordinates_barcodes_dictionary (filtered_read_one, barcode_matrix, indices_list)
+	files_set = create_sorted_fastq_file (read_two, barcode_matrix, coordinates_barcodes, dir_name, indices_list)
 	close_all_files (files_set)
 
 	# Makes a log file of runtimes
