@@ -149,6 +149,10 @@ def filter_read_one (read_one, cell_barcode_coordinates_table, filtered_read_one
 	read1_dictionary = {}
 	barcodes = cell_barcode_coordinates_table
 	fastq_to_append = open(filtered_read_one, "a+")
+
+	# debugging
+	filtered_out = open("filtered_out_reads.fastq", "a+")
+	
 	file = open(read_one)
 
 	with file:
@@ -174,7 +178,9 @@ def filter_read_one (read_one, cell_barcode_coordinates_table, filtered_read_one
 				
 				# else, isn't a target barcode
 				except:
-					pass
+					filtered_out.write(header)
+					filtered_out.write(line)
+
 				
 			# will skip lines 3 and 4 for performance
 			if not i % 2:
