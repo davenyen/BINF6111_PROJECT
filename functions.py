@@ -1,13 +1,35 @@
 # Author:
 # Function: Holds functions for cell_assign.py and parse_fastq
-# Version: 1.4
+# Version: 1.5
 
 import sys
 import collections
 import os
 import time
 import csv
+import threading
 from itertools import islice
+
+############################################################################
+################################ Classes ###################################
+############################################################################
+
+# Thread used for cell_assign for now
+class myThread (threading.Thread):
+	def __init__(self, threadID, name, read_two_file, barcode_matrix, r_one_coordinates_dict, dir_name, indices_list):
+		threading.Thread.__init__(self)
+		self.threadID = threadID
+		self.name = name
+		self.read_two_file = read_two_file
+		self.barcode_matrix = barcode_matrix
+		self.r_one_coordinates_dict = r_one_coordinates_dict
+		self.dir_name = dir_name
+		self.indices_list = indices_list
+
+	def run(self):
+		print("Starting " + self.name)
+		create_sorted_fastq_file(self.read_two_file, self.barcode_matrix, self.r_one_coordinates_dict, self.dir_name, self.indices_list)
+		print("Exiting " + self.name)
 
 ############################################################################
 ################################ FUNCTIONS #################################
@@ -18,7 +40,6 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, r_one_coordinates_d
 
 	# Opens read2 file to match with read1, file_set used to memorise open files to close later
 	file = open(read_two_file)
-	file_set = set()
 	coordinates = ''
 	skipper = False
 	new_header = True
@@ -44,23 +65,22 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, r_one_coordinates_d
 						# If file and directory exists then append to it
 						if os.path.isdir("{}/{}".format(dir_name, group_name)) == True:
 							# Assumes since directory exists then file must too, so append for speed
-							try:
-								target_file = ("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, read_two_indice))
-								f = open(target_file, "a")
-								f.write("{}{}".format(header, sequence))
-							except:
-								f.write("{}{}".format(header, sequence))
+							#try:
+							target_file = ("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, read_two_indice))
+							f = open(target_file, "a")
+								#f.write("{}{}".format(header, sequence))
+							#except:
+							f.write("{}{}".format(header, sequence))
 						# If output/(group) doesn't exist then makes it and writes the first 2 lines to it
-						else:
-							os.makedirs("{}/{}".format(dir_name, group_name))
+						#else:
+							#os.makedirs("{}/{}".format(dir_name, group_name))
 							# Creates fastq file for respective group 
-							try:
-								target_file = ("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, read_two_indice))
-								f = open(target_file, "w")
-								f.write("{}{}".format(header, sequence))
-							except:
-								f.write("{}{}".format(header, sequence))
-							file_set.add(f)
+							#try:
+								#target_file = ("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, read_two_indice))
+								#f = open(target_file, "w")
+								#f.write("{}{}".format(header, sequence))
+							#except:
+								#f.write("{}{}".format(header, sequence))
 						new_header = False
 			# Else the line must be the header
 			else:
@@ -73,7 +93,7 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, r_one_coordinates_d
 					skipper = False
 					new_header = True
 
-	return file_set
+	pass
 
 # Reads matrix csv and returns a data structure (dictionary) for O(1) access time
 def read_matrix (csv_matrix):
@@ -93,7 +113,7 @@ def read_matrix (csv_matrix):
 
 	return barcode_dictionary
 
-# Creates target directories 
+# Creates target directories and opens fastq files for impending appending
 def create_target_directory (barcode_table, read_two):
 	read_two = read_two.split("/")[-1:]
 	read_two = read_two[0].split("L")[:-1]
@@ -119,16 +139,19 @@ def create_target_directory (barcode_table, read_two):
 
 # Make a dictionary of read1 where {coordinate: barcode} 
 # If read_one barcode does not exist in the matrix then skip (saves time)
+# Uses line count to know if read2 can be split into multiples of 2
 def coordinates_barcodes_dictionary (read_one, barcode_matrix, indices_list):
 
 	read1_dictionary = {}
 	file = open(read_one)
 	skipper = False
+	line_count = 0
 
 	# Goes through read1 and saves barcode + coordinate into a dictionary for O(1)
 	with file:
 		for i, line in enumerate(file, 1):
 
+			line_count = i
 			if skipper == True:
 				skipper = False
 				if not i % 2:
@@ -155,6 +178,8 @@ def coordinates_barcodes_dictionary (read_one, barcode_matrix, indices_list):
 			if not i % 2:
 				consume(file, 2)
 
+	read1_dictionary["LineCount"] = line_count*2
+	#print(read1_dictionary["LineCount"])
 	file.close()
 	return read1_dictionary
 
@@ -214,6 +239,23 @@ def create_indices_list (indices_file):
 			indice_list.append(indice.rstrip())
 	file.close()
 	return indice_list
+
+# Creates fastq files and prepares for appending
+def create_fastq_files (dir_name, indices_list, barcode_matrix):
+
+	unique_barcodes = set()
+	files_to_close = set()
+
+	for val in barcode_matrix.values():
+		unique_barcodes.add(val)
+
+	for group_name in unique_barcodes:
+		os.makedirs("{}/{}".format(dir_name, group_name))
+		for indice in indices_list:
+			file = open("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, indice), "a")
+			files_to_close.add(file)
+
+	return files_to_close
 
 # Closes all fastq files at the end 
 def close_all_files (files_set):

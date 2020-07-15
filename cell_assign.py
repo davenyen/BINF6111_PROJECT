@@ -1,21 +1,13 @@
 # Author: David Nguyen
 # Function: Assigns cells to groups/targets
-# Version: 1.4
+# Version: 1.5
 
 import sys
 import os
 import time
 import datetime
 from collections import Counter
-from functions import read_matrix, create_target_directory, create_sorted_fastq_file, coordinates_barcodes_dictionary, error_check, close_all_files, create_indices_list
-
-# https://stackoverflow.com/questions/44637844/cpu-usage-of-python-script (research cpu time for threading)
-
-# OPTIMISATION IDEAS:
-# (1) Assume some barcodes are not in the matrix, then do [if barcode not in matrix: skip] (speeds up read1) [ACTIVE]
-# (2) Assume coordinates do not always match, then do [if coordinates not in read1: skip] (speeds up read2) [ACTIVE]
-# (3) Assume parse_fastq processes read1, get variables from that function simultaneously for speed 
-# (4) Partition Read 2 file into 2 or more parts then thread it 
+from functions import create_fastq_files, read_matrix, create_target_directory, create_sorted_fastq_file, coordinates_barcodes_dictionary, error_check, close_all_files, create_indices_list, myThread
 
 # Input: python3 cell_assign.py {matrix.csv} {read1.fastq} {read2.fastq}
 # Output: sorted_target_groups/{lots of groups}/group.fastq (for each group)
@@ -49,14 +41,44 @@ if __name__ == '__main__':
 	
 	# Run error checking
 	error_check (csv_matrix, filtered_read_one, read_two, indices)
+
+	# SPLITS READ 2 INTO SMALLER FILES has to be divisible by 4 to get output (CHANGE -l)
+	try:
+		os.makedirs("split_dir")
+	except:
+		pass
+	os.system("split -l253448972 {} split_dir/split_".format(read_two))
+
+	split_file_list = []
+
+	for split_file in os.listdir("split_dir"):
+		split_file_list.append("split_dir/{}".format(split_file))
+
 	
 	# Main functions
 	barcode_matrix = read_matrix (csv_matrix)
 	indices_list = create_indices_list (indices)
 	dir_name = create_target_directory (barcode_matrix, read_two)
 	coordinates_barcodes = coordinates_barcodes_dictionary (filtered_read_one, barcode_matrix, indices_list)
-	files_set = create_sorted_fastq_file (read_two, barcode_matrix, coordinates_barcodes, dir_name, indices_list)
-	close_all_files (files_set)
+
+	# testing
+	open_files = create_fastq_files (dir_name, indices_list, barcode_matrix)
+	
+	# create loop for thread making probably and starting
+	thread1 = myThread(1, "Thread 1", split_file_list[0], barcode_matrix, coordinates_barcodes, dir_name, indices_list)
+	thread2 = myThread(2, "Thread 2", split_file_list[1], barcode_matrix, coordinates_barcodes, dir_name, indices_list)
+	thread3 = myThread(3, "Thread 3", split_file_list[2], barcode_matrix, coordinates_barcodes, dir_name, indices_list)
+	thread4 = myThread(4, "Thread 4", split_file_list[3], barcode_matrix, coordinates_barcodes, dir_name, indices_list)
+
+	thread1.start()
+	thread2.start()
+	thread3.start()
+	thread4.start()
+	#os.system("rm -r split_dir")
+	close_all_files (open_files)
+
+	#files_set = create_sorted_fastq_file (read_two, barcode_matrix, coordinates_barcodes, dir_name, indices_list)
+	#close_all_files (files_set)
 
 	# Makes a log file of runtimes
 	runtime_log = os.system("touch CA_LOG.txt")
