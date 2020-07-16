@@ -1,8 +1,11 @@
 #!/bin/bash
 
+# Author: Chelsea Liang
+# Function: Parses reads (python) and launches alignments (bash)
+
 #####
 # This master script launches this pipeline, run with:
-# ./master_script.sh ${data_path} ${list_path} ${matrix_path} ${output_path}
+# ./master_script.sh ${output_path} ${data_path} ${barcodes_path} ${matrix_path} ${indices_path} ${ref_genome}
 #
 
 # TODO
@@ -12,26 +15,30 @@
 #	files in output folder already
 #
 
-## PROCCESSING INPUT
+# TEST CASES
 
-# test inputs
-# data_path='/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1'
-# matrix_path='/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv'
-# list_path='/Users/student/BINF6111_2020/test/test_list_barcodes.txt'
-# output_path='/Users/student/BINF6111_2020/test/output'
+# full run
+# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
+# matrix_path=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
+# barcodes_path=/Users/student/BINF6111_2020/test/test_list_barcodes.txt
+# indices_path=/Users/student/BINF6111_2020/data/Indices_A1.txt
+# output_path=/Users/student/BINF6111_2020/test/output
 
-# data_path='/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1'
-# matrix_path='/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv'
-# list_path='/Users/student/BINF6111_2020/test/check_master_script/barcodesA1.csv'
-# output_path='/Users/student/BINF6111_2020/test/check_master_script'
+# sanity check test
+# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
+# matrix_path=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
+# barcodes_path=/Users/student/BINF6111_2020/test/check_master_script/barcodesA1.csv
+# indices_path=/Users/student/BINF6111_2020/data/Indices_A1.txt
+# output_path=/Users/student/BINF6111_2020/test/check_master_script
 
 # VARIABLES
-data_path=${1}
-matrix_path=${2}
-list_path=${3}
-output_path=${4}
-ref_genome=${5}
-log=${output_path}/log.txt
+output_path=${1}
+data_path=${2}
+matrix_path=${3}
+barcodes_path=${4}
+indices_path=${5}
+ref_genome=${6}
+log=${output_path}/pipeline_log.txt
 verbose=true # fix this later, use getopts to parse variable options!
 not_exist=false #just for testing purposes
 
@@ -40,8 +47,6 @@ not_exist=false #just for testing purposes
 # error handling inputs (LATER)
 
 # translate groups into cell barcodes (LATER/optional)
-
-
 
 
 # get files with the reads in them from directory
@@ -88,7 +93,7 @@ for fastq in ${data_path}/*
 		then
 			experiment_name='test'
 			python3 parse_read_one.py ${output_path}/*${BASH_REMATCH[1]}_R1*.fastq \
-			${list_path} ${experiment_name}
+			${barcodes_path} ${experiment_name}
 		fi
 
 		# delete full fastq after we are done with testing phase

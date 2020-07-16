@@ -47,7 +47,7 @@ if __name__ == '__main__':
 		os.makedirs("split_dir")
 	except:
 		pass
-	os.system("split -l253448972 {} split_dir/split_".format(read_two))
+	#os.system("split -l253448972 {} split_dir/split_".format(read_two))
 
 	split_file_list = []
 

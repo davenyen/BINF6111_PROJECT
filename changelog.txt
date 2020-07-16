@@ -6,4 +6,7 @@ Version 1.4:
 Version 1.5:
     - cell_assign.py -> Added Threading
     - functions.py   -> Changed return value of create_sorted_fastq_file
-                     -> New function, create_fastq_files 
+                     -> New function, create_fastq_files
+
+Version 1.6:
+    
