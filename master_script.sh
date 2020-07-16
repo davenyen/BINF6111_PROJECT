@@ -39,76 +39,83 @@ barcodes_path=${4}
 indices_path=${5}
 ref_genome=${6}
 log=${output_path}/pipeline_log.txt
-verbose=true # fix this later, use getopts to parse variable options!
-not_exist=false #just for testing purposes
 
-
+exist=true #just for testing purposes
+identify_experiment_name=not_exist
+file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+.fastq'
 
 # error handling inputs (LATER)
-
 # translate groups into cell barcodes (LATER/optional)
-
-
 # get files with the reads in them from directory
-en_regex='(.+)_L[0-9]{3}_.+'
-read_regex='.+_(L[0-9]{3})_(R[12])_.+.fastq.gz$'
 
-# # test
-# en_regex='(test)_.+_L[0-9]{3}_.+'
-# read_regex='test_.+_(R[12])_.+.fastq$'
+
 for fastq in ${data_path}/*
 	do
+	fastq=$(basename ${fastq})
 	
 	# grab name of experiment (everything before the lane number)
-	if [[ ${fastq} =~ ${en_regex} ]]
+	if [[ ${identify_experiment_name} == 'not_exist' ]]
 	then
-		experiment_name=$(basename ${BASH_REMATCH[1]})
-	else
-		echo "can't identify experiment name, will name experiment as 'sample_1'" >> ${log}
-		experiment_name='sample_1'   
+		if [[ ${fastq} =~ ${file_regex} ]]
+		then
+			experiment_name=${BASH_REMATCH[1]}
+			echo [$(date)] "Running pipeline on experiment: ${experiment_name}" >> ${log}
+			identify_experiment_name=true
+
+		else
+			echo [$(date)] "Error: Can't identify experiment name, will name experiment as 'sample_1'" >> ${log}
+			experiment_name='sample_1'
+			echo [$(date)] "Running pipeline on experiment: ${experiment_name}" >> ${log}
+			identify_experiment_name=true  
+		fi
 	fi
 
 	# Steps are:
 		# 1) check which read file
-		# 2) decompress file
+		# 2) uncompress file
 		# 3) process reads using python to open file, look for cell barcodes, write reads to new_files
 
+
+	if ${exist}; then echo [$(date)] "Already copied and uncompresseed fastqs" >> ${log}; break; fi
+
 	# check file is a read file
-	if [[ ${fastq} =~ ${read_regex} ]]
+	if [[ ${fastq} =~ ${file_regex} ]]
 	then
 		file=$(basename ${fastq} .gz)
-		if ${verbose}; then echo "Reading ${file}" >> ${log}; fi
-
-		if ${not_exist}
-		then
-			# rsync it over, this way is safer in case fastq is huge
-			rsync -avz ${fastq} ${output_path}
-			
-			# uncompress file in place
-			gunzip ${output_path}/${file}.qz
-		fi
-
-		# process read 1 file for the cell barcodes
-		if [[ 'R1' == ${BASH_REMATCH[2]} ]] 
-		then
-			experiment_name='test'
-			python3 parse_read_one.py ${output_path}/*${BASH_REMATCH[1]}_R1*.fastq \
-			${barcodes_path} ${experiment_name}
-		fi
-
-		# delete full fastq after we are done with testing phase
+		echo [$(date)] "Reading ${file}" >> ${log}
+		
+		# rsync it over, this way is safer in case fastq is huge
+		rsync -avz ${fastq} ${output_path}
+		
+		# uncompress file in place
+		gunzip ${output_path}/${file}.qz
 
 		
 	# else, go to the next file
 	else  
-		if ${verbose}; then echo "Not a read file" >> ${log}; fi
+		echo [$(date)] "${fastq} is not a fastq file" >> ${log}
 		continue
 	fi
 
 done
 
-# print if verbose
-if ${verbose}; then echo "Running pipeline on experiment: ${experiment_name}" >> ${log}; fi
+# iterate through files in output_path to launch parsing of each lane
+for fastq in ${output_path}/*
+	do
+
+	if [[ ${fastq} =~ ${file_regex} ]] && [[ 'R1' == ${BASH_REMATCH[3]} ]] 
+	then
+		experiment_name='test'
+		# python3 parse_read_one.py ${output_path}/*${BASH_REMATCH[1]}_R1*.fastq \
+		# ${barcodes_path} ${experiment_name}
+
+		echo [$(date)] "Completed lane: ${BASH_REMATCH[2]}" >> ${log}
+	fi
+
+done
+
+
+
 
 
 

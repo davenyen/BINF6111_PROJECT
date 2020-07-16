@@ -9,4 +9,6 @@ Version 1.5:
                      -> New function, create_fastq_files
 
 Version 1.6:
+    - master_script.sh -> total restructure, split copying and decompressing from and manipulation of output file
+    
     
