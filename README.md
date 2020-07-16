@@ -14,7 +14,9 @@ cd /Volumes/Data1/PROJECTS/CROPseq/Pilot/hnPCR/iSeq_Script.txt
 The original source is https://github.com/shendurelab/single-cell-ko-screens
 TruSeq Read 1 is used to sequence 16 bp 10x Barcodes and 12 bp UMI
 
-# ideas
-add total_progress = {number of steps in the program} \n
-Create progress bar with total_progress so we know how long the whole thing is going to take!\n
-add a "man" function for parameters? cause it looks neat and clean
+# Useful Facts
+Reading through R1 to create dictionary takes 30 minutes
+Splitting R2 takes 30-40 minutes
+
+# To do (cell_assin)
+Read https://biopython.org/wiki/Split_large_file on splitting fastq files (current method is not reliable)

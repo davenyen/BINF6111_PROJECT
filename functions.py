@@ -41,23 +41,18 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, r_one_coordinates_d
 	# Opens read2 file to match with read1, file_set used to memorise open files to close later
 	file = open(read_two_file)
 	coordinates = ''
-	skipper = False
 	new_header = True
+	test_list = []
 
 	with file:
 		for line in file:
 			# if it's not a header must be a sequence/quality/+  
 			# if the coordinate exists in read1, then it will proceed to write the other 2 lines to the file.
-			if skipper == True:
-				if line[0] == "@":
-					skipper = False
-				else:
-					continue
 
-			if line[0] != "@" and skipper == False:
+			if line[0] != "@":
 				if new_header == False:
 					f.write("{}".format(line))
-				else:
+				elif coordinates in r_one_coordinates_dict.keys():
 					sequence = line
 					# GET TARGET/GROUP then write a fastq file with read2 data into group/directory
 					if r_one_coordinates_dict[coordinates] in barcode_matrix.keys():
@@ -87,10 +82,11 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, r_one_coordinates_d
 				header = line
 				coordinates = ':'.join(line.split(':')[4:6])
 				read_two_indice = line.split(':')[9].rstrip()
-				if coordinates not in r_one_coordinates_dict or read_two_indice not in indices_list:
-					skipper = True
+				if coordinates not in r_one_coordinates_dict.keys() or read_two_indice not in indices_list:
+					test_list.append(line)
+					consume(file, 3)
 				else:
-					skipper = False
+					#skipper = False
 					new_header = True
 
 	pass
@@ -144,7 +140,6 @@ def coordinates_barcodes_dictionary (read_one, barcode_matrix, indices_list):
 
 	read1_dictionary = {}
 	file = open(read_one)
-	skipper = False
 	line_count = 0
 
 	# Goes through read1 and saves barcode + coordinate into a dictionary for O(1)
@@ -152,11 +147,6 @@ def coordinates_barcodes_dictionary (read_one, barcode_matrix, indices_list):
 		for i, line in enumerate(file, 1):
 
 			line_count = i
-			if skipper == True:
-				skipper = False
-				if not i % 2:
-					consume(file, 2)
-				continue
 			
 			# check line if it is header, save to maybe print later
 			if line[0] == "@":
@@ -164,7 +154,8 @@ def coordinates_barcodes_dictionary (read_one, barcode_matrix, indices_list):
 				#barcode = ''.join(line.split(':')[9]).rstrip() + ":"
 				line_indice = ''.join(line.split(':')[9]).rstrip()
 				if line_indice not in indices_list:
-					skipper = True
+					#skipper = True
+					consume(file, 3)
 					continue
 			# if it's not a header must be a sequence
 			else:
@@ -179,7 +170,6 @@ def coordinates_barcodes_dictionary (read_one, barcode_matrix, indices_list):
 				consume(file, 2)
 
 	read1_dictionary["LineCount"] = line_count*2
-	#print(read1_dictionary["LineCount"])
 	file.close()
 	return read1_dictionary
 

@@ -47,14 +47,18 @@ if __name__ == '__main__':
 		os.makedirs("split_dir")
 	except:
 		pass
+
+	# splits into 2/4/8 based on lines%4 == 0
+	# splits 4
 	#os.system("split -l253448972 {} split_dir/split_".format(read_two))
+	# splits 8
+	#os.system("split -l126724486 {} split_dir/split_".format(read_two))
 
 	split_file_list = []
 
 	for split_file in os.listdir("split_dir"):
 		split_file_list.append("split_dir/{}".format(split_file))
 
-	
 	# Main functions
 	barcode_matrix = read_matrix (csv_matrix)
 	indices_list = create_indices_list (indices)
@@ -70,11 +74,22 @@ if __name__ == '__main__':
 	thread3 = myThread(3, "Thread 3", split_file_list[2], barcode_matrix, coordinates_barcodes, dir_name, indices_list)
 	thread4 = myThread(4, "Thread 4", split_file_list[3], barcode_matrix, coordinates_barcodes, dir_name, indices_list)
 
+	thread5 = myThread(5, "Thread 5", split_file_list[4], barcode_matrix, coordinates_barcodes, dir_name, indices_list)
+	thread6 = myThread(6, "Thread 6", split_file_list[5], barcode_matrix, coordinates_barcodes, dir_name, indices_list)
+	thread7 = myThread(7, "Thread 7", split_file_list[6], barcode_matrix, coordinates_barcodes, dir_name, indices_list)
+	thread8 = myThread(8, "Thread 8", split_file_list[7], barcode_matrix, coordinates_barcodes, dir_name, indices_list)
+
 	thread1.start()
 	thread2.start()
 	thread3.start()
 	thread4.start()
+	thread5.start()
+	thread6.start()
+	thread7.start()
+	thread8.start()
+
 	#os.system("rm -r split_dir")
+
 	close_all_files (open_files)
 
 	#files_set = create_sorted_fastq_file (read_two, barcode_matrix, coordinates_barcodes, dir_name, indices_list)
