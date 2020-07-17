@@ -9,7 +9,7 @@ import time
 import datetime
 from functions import *
 
-# TODO
+## TODO
 ## Error checking will be done by master script
 
 if __name__ == '__main__':
@@ -34,7 +34,7 @@ if __name__ == '__main__':
 	## Settings (can tweak)
 	log_path = working_dir + '/pipeline_log.txt'
 	output_dir = (working_dir + '/SORTED_GROUPS')
-	maaaaaaaaany_lines = 100000
+	maaaaaaaaany_lines = 10000000
 
 	## Writing to log
 	message.append('read_one = ' + read_one)
@@ -58,18 +58,17 @@ if __name__ == '__main__':
 	dir_name = create_target_directory (output_dir, append_target_directory)
 	create_fastq_files (dir_name, indices_list, group_barcode_matrix)
 
-
 	# Function to split files that that are large
 	file_line_count = count_lines (read_one)
-	if file_line_count > maaaaaaaaany_lines:
+	if file_line_count >= maaaaaaaaany_lines:
 		# open_files = []
 		# split file function, optimise on num_threads variable
 		# run on split files
 		message.append("LARGE FILES NOT YET IMPLEMENTED")
 		pass
 	else:
-		cood_barcode_matrix = create_coordinates_barcodes_dictionary (read_one, group_barcode_matrix, desired_barcodes, indices_list)
-		create_sorted_fastq_file (read_two, group_barcode_matrix, cood_barcode_matrix, output_dir, indices_list)
+		coord_barcode_matrix = create_coordinates_barcodes_dictionary (read_one, group_barcode_matrix, desired_barcodes, indices_list)
+		create_sorted_fastq_file (read_two, group_barcode_matrix, coord_barcode_matrix, output_dir, indices_list)
 		message.append("COMPLETED")
 
 

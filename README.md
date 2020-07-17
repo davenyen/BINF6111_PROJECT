@@ -18,5 +18,6 @@ TruSeq Read 1 is used to sequence 16 bp 10x Barcodes and 12 bp UMI
 Reading through R1 to create dictionary takes 30 minutes
 Splitting R2 takes 30-40 minutes
 
-# To do (cell_assin)
-Read https://biopython.org/wiki/Split_large_file on splitting fastq files (current method is not reliable)
+# To do 
+Try to integrate line count somewhere instead of calling it so we can save
+30 minutes of runtime

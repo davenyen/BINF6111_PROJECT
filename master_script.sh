@@ -114,18 +114,7 @@ for fastq in ${working_dir}/*
 done
 
 
-
-
-
-
-
 ## CELL ASSIGNMENT
-
-# To do
-# 1. Create loop and iterate through Reads (match read1 to read2)
-# 2. Run cell_assign for each separate read1 + read2 matches 
-
-#python3 cell_assign.py ${matrix} ${} ${}
 
 # ${experiment_name}_${group_name}
 

@@ -16,4 +16,9 @@ Version 1.7:
 	- parse_lane.py    	-> Created, integrating parse_read_one.py and cell_assign.py
 	- functions.py  	-> Created version 2 of create_target_directory
 						-> Altered a bunch of variables given to functions to integrate things better
-						-> Prints out read ones that don't have the right index to .error fastq 
+						-> Prints out read ones that don't have the right index to .error fastq
+
+Version 1.8:
+	- parse_lane.py    	-> Created, integrating parse_read_one.py and cell_assign.py
+	- functions.py  	-> Created threads function (makes and starts threads)
+						-> Created split files function (can input number of threads) [Default is 8 bc 3 hrs is ceebs]

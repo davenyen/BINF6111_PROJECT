@@ -12,6 +12,7 @@ import threading
 import subprocess
 import collections
 from itertools import islice
+from Bio import SeqIO
 
 ############################################################################
 ################################ Classes ###################################
@@ -45,7 +46,6 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, r_one_coordinates_d
 	file = open(read_two_file)
 	coordinates = ''
 	new_header = True
-	test_list = []
 	files_to_close = set()
 
 	for line in file:
@@ -87,8 +87,6 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, r_one_coordinates_d
 			coordinates = ':'.join(line.split(':')[4:6])
 			read_two_indice = line.split(':')[9].rstrip()
 			if coordinates not in r_one_coordinates_dict.keys() or read_two_indice not in indices_list:
-				test_list.append(line)
-				
 				consume(file, 3)
 			else:
 				#skipper = False
@@ -97,12 +95,10 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, r_one_coordinates_d
 	close_all_files(files_to_close)
 	
 
-
-
 # Combines create_fastq_files and coordinates_barcodes_dictionary
 def create_coordinates_barcodes_dictionary (read_one, barcode_matrix, desired_barcodes, indices_list):
 	read_one_dic = {}
-	header = ''
+	#header = ''
 	coordinates = ''
 	read_one_file = open(read_one, 'r')
 	error_read_one_file = open(read_one + '.error' , 'a+')
@@ -114,27 +110,31 @@ def create_coordinates_barcodes_dictionary (read_one, barcode_matrix, desired_ba
 			line_indice = ''.join(line.split(':')[9]).rstrip()
 			
 			# faster if this happens so maybe we should have a flag to turn it on and off?
-			# if line_indice not in indices_list:
-			# 	consume(read_one_file, 3)
-			# 	continue
+			if line_indice not in indices_list:
+				consume(read_one_file, 3)
+				#error_read_one_file.write(line)
+				continue
 			
 			coordinates = ':'.join(line.split(':')[4:6])
-			header = line
+			#header = line
 			
-
 		# if it's not a header must be a sequence/+/quality
 		else:
 			# barcode is first 16 bp
 			barcode = ''.join(line[0:16])
+			if barcode in barcode_matrix.keys():
 
 			# if it is a desired barcode, match it to read two
-			if barcode in desired_barcodes:
-				if line_indice in indices_list:
-					read_one_dic[coordinates] = barcode 
-				else:
-					error_read_one_file.write(header)
-					error_read_one_file.write(line)
-
+			#if barcode in desired_barcodes.keys():
+				#if line_indice in indices_list:
+				#error_read_one_file.write(header)
+				read_one_dic[coordinates] = barcode 
+				#else:
+					#error_read_one_file.write(header)
+					#error_read_one_file.write(line)
+			#else:
+				#error_read_one_file.write(header)
+				#pass
 
 		if not i % 2:
 			consume(read_one_file, 2)
@@ -144,31 +144,7 @@ def create_coordinates_barcodes_dictionary (read_one, barcode_matrix, desired_ba
 
 	return read_one_dic
 
-
-# Reads matrix csv and returns a data structure (dictionary) for O(1) access time
-def read_matrix (csv_matrix):
-	barcode_dictionary = {}
-
-	# Reads cell barcode matrix and saves only: barcode + target into dictionary
-	with open(csv_matrix, 'r') as file:
-		reader = csv.reader(file)
-		skip_first = True
-		for row in reader:
-			# Skips first row because there is no data in the first row
-			if skip_first == True: 
-				skip_first = False
-				continue
-			else:
-				# example: barcode_dictionary[CATACAGAGCACTCGC] = neg4
-				try:
-					barcode_dictionary[row[1].rstrip()] = row[5]
-				# repurposing to handle creating a dictionary from a plain text file
-				except:
-					barcode_dictionary[row[0].rstrip()] = 1
-
-	return barcode_dictionary
-
-# Creates target directories and opens fastq files for impending appending
+# Creates target directories
 def create_target_directory (output_directory, append):
 
 	# Creates the directory for the sorted groups to go into
@@ -176,7 +152,7 @@ def create_target_directory (output_directory, append):
 		os.makedirs(output_directory)
 	# Will append groups 
 	except:
-		if append:
+		if append == True:
 			pass
 		else:
 			try:
@@ -184,9 +160,7 @@ def create_target_directory (output_directory, append):
 			except:
 				pass
 
-
 	return output_directory
-
 
 # Creates a list given indices as input (assumes file is similar format to symlinks/Indices_A1.txt)
 def create_indices_list (indices_file):
@@ -218,6 +192,109 @@ def create_fastq_files (dir_name, indices_list, barcode_matrix):
 			pass
 
 	close_all_files (files_to_close)
+
+# Creates and run N threads
+def create_threads (split_files, barcode_matrix, r_one_coordinates_dict, dir_name, indices_list):
+	""" Parameters:
+			split_files            = list of split files
+			barcode_matrix         = dictionary of {barcode: target}
+			r_one_coordinates_dict = dictionary of R1 {coord: barcode}
+			dir_name 			   = directory of output path 
+			indices_list           = list of indices 
+		Description:
+			Makes threads based on number of split files and starts them,
+			Also joins them so we don't get premature output
+	"""
+	threads = []
+	for i in range(0, len(split_files)):
+		threads.append(i)
+		threads[i] = myThread(("{}".format(i+1)), ("Thread {}".format(i+1)), split_files[i], barcode_matrix, r_one_coordinates_dict, dir_name, indices_list)
+		threads[i].start()
+	for i in range(0, len(threads)):
+		threads[i].join()
+	pass
+
+# Splits Read 2 file and returns list of split files (splits to current directory for now) 
+def split_read_two (read_two_file, line_count, thread_numbers, shortcut):
+	""" Parameters:
+			read_two_file  = The R2 file
+			line_count     = Number of lines from R1 as (R1 lines = R2 lines)
+			thread_numbers = Number of files to be split into (num threads = num of split files)
+			shortcut       = directory of already split files, only for testing, used to avoid running split 
+		Description:
+			Read 1 lines = Read 2 lines as they are paired reads 
+			Probably delete the split directory(s) after in release, 
+			for now just keep files so we save ~30 minutes splitting
+	"""
+	split_files = []
+	records_num = int(((line_count/4)/thread_numbers) + 1)
+	record_iter = SeqIO.parse(open(read_two_file),"fastq")
+
+	# SHORTCUT 
+	if shortcut == True:
+		for item in shortcut:
+			split_files.append(item)
+		return split_files
+
+	for i, batch in enumerate(batch_iterator(record_iter, records_num)):
+		filename = ("FULL_L1_R2/split{}".format(i))
+		split_files.append(filename)
+		with open(filename, "w") as handle:
+			count = SeqIO.write(batch, handle, "fastq")
+		print("Wrote %i records to %s" % (count, filename))
+
+	return split_files
+
+# From "https://biopython.org/wiki/Split_large_file"
+def batch_iterator(iterator, batch_size):
+    """Returns lists of length batch_size.
+
+    This can be used on any iterator, for example to batch up
+    SeqRecord objects from Bio.SeqIO.parse(...), or to batch
+    Alignment objects from Bio.AlignIO.parse(...), or simply
+    lines from a file handle.
+
+    This is a generator function, and it returns lists of the
+    entries from the supplied iterator.  Each list will have
+    batch_size entries, although the final list may be shorter.
+    """
+    entry = True  # Make sure we loop once
+    while entry:
+        batch = []
+        while len(batch) < batch_size:
+            try:
+                entry = next(iterator)
+            except StopIteration:
+                entry = None
+            if entry is None:
+                # End of file
+                break
+            batch.append(entry)
+        if batch:
+            yield batch
+
+# Reads matrix csv and returns a data structure (dictionary) for O(1) access time
+def read_matrix (csv_matrix):
+	barcode_dictionary = {}
+
+	# Reads cell barcode matrix and saves only: barcode + target into dictionary
+	with open(csv_matrix, 'r') as file:
+		reader = csv.reader(file)
+		skip_first = True
+		for row in reader:
+			# Skips first row because there is no data in the first row (only for csv files)
+			if skip_first == True and csv_matrix[-4:] == ".csv": 
+				skip_first = False
+				continue
+			else:
+				# example: barcode_dictionary[CATACAGAGCACTCGC] = neg4
+				try:
+					barcode_dictionary[row[1].rstrip()] = row[5]
+				# repurposing to handle creating a dictionary from a plain text file
+				except:
+					barcode_dictionary[row[0].rstrip()] = 1
+
+	return barcode_dictionary
 
 # Closes all fastq files at the end 
 def close_all_files (files_set):
@@ -254,7 +331,7 @@ def consume(iterator, n=None):
 		# advance to the empty slice starting at position n
 		next(islice(iterator, n, n), None)
 
-# Count number of lines in file QUICKLY
+# Count number of lines in file QUICKLY 
 def count_lines(filename):
 	return int(subprocess.check_output(['wc', '-l', filename]).split()[0])
 
