@@ -31,9 +31,9 @@ class myThread (threading.Thread):
 		self.indices_list = indices_list
 
 	def run(self):
-		print("Starting " + self.name)
+		#print("Starting " + self.name)
 		create_sorted_fastq_file(self.read_two_file, self.barcode_matrix, self.r_one_coordinates_dict, self.dir_name, self.indices_list)
-		print("Exiting " + self.name)
+		#print("Exiting " + self.name)
 
 ############################################################################
 ################################ FUNCTIONS #################################
@@ -241,7 +241,7 @@ def split_read_two (read_two_file, line_count, thread_numbers, shortcut):
 		split_files.append(filename)
 		with open(filename, "w") as handle:
 			count = SeqIO.write(batch, handle, "fastq")
-		print("Wrote %i records to %s" % (count, filename))
+		#print("Wrote %i records to %s" % (count, filename))
 
 	return split_files
 
