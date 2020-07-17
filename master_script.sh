@@ -42,7 +42,7 @@ log=${working_dir}/pipeline_log.txt
 
 exist=true #just for testing purposes
 identify_experiment_name=not_exist
-file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+.fastq'
+file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+.fastq[.gz]?$'
 
 # error handling inputs (LATER)
 # translate groups into cell barcodes (LATER/optional)

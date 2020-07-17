@@ -3,11 +3,13 @@
 # Version: 1.7
 
 import os
+import re
 import sys
 import time
 import csv
 import datetime
 import threading
+import subprocess
 import collections
 from itertools import islice
 
@@ -44,53 +46,142 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, r_one_coordinates_d
 	coordinates = ''
 	new_header = True
 	test_list = []
+	files_to_close = set()
 
-	with file:
-		for line in file:
-			# if it's not a header must be a sequence/quality/+  
-			# if the coordinate exists in read1, then it will proceed to write the other 2 lines to the file.
+	for line in file:
+		# if it's not a header must be a sequence/quality/+  
+		# if the coordinate exists in read1, then it will proceed to write the other 2 lines to the file.
 
-			if line[0] != "@":
-				if new_header == False:
-					f.write("{}".format(line))
-				elif coordinates in r_one_coordinates_dict.keys():
-					sequence = line
-					# GET TARGET/GROUP then write a fastq file with read2 data into group/directory
-					if r_one_coordinates_dict[coordinates] in barcode_matrix.keys():
-						group_name = barcode_matrix[r_one_coordinates_dict[coordinates]]
-						# If file and directory exists then append to it
-						if os.path.isdir("{}/{}".format(dir_name, group_name)) == True:
-							# Assumes since directory exists then file must too, so append for speed
-							#try:
-							target_file = ("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, read_two_indice))
-							f = open(target_file, "a")
-								#f.write("{}{}".format(header, sequence))
-							#except:
-							f.write("{}{}".format(header, sequence))
-						# If output/(group) doesn't exist then makes it and writes the first 2 lines to it
-						#else:
-							#os.makedirs("{}/{}".format(dir_name, group_name))
-							# Creates fastq file for respective group 
-							#try:
-								#target_file = ("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, read_two_indice))
-								#f = open(target_file, "w")
-								#f.write("{}{}".format(header, sequence))
-							#except:
-								#f.write("{}{}".format(header, sequence))
-						new_header = False
-			# Else the line must be the header
+		if line[0] != "@":
+			if new_header == False:
+				f.write("{}".format(line))
+			elif coordinates in r_one_coordinates_dict.keys():
+				sequence = line
+				# GET TARGET/GROUP then write a fastq file with read2 data into group/directory
+				if r_one_coordinates_dict[coordinates] in barcode_matrix.keys():
+					group_name = barcode_matrix[r_one_coordinates_dict[coordinates]]
+					# If file and directory exists then append to it
+					if os.path.isdir("{}/{}".format(dir_name, group_name)) == True:
+						# Assumes since directory exists then file must too, so append for speed
+						#try:
+						target_file = ("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, read_two_indice))
+						f = open(target_file, "a")
+						files_to_close.add(f)
+							#f.write("{}{}".format(header, sequence))
+						#except:
+						f.write("{}{}".format(header, sequence))
+					# If output/(group) doesn't exist then makes it and writes the first 2 lines to it
+					#else:
+						#os.makedirs("{}/{}".format(dir_name, group_name))
+						# Creates fastq file for respective group 
+						#try:
+							#target_file = ("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, read_two_indice))
+							#f = open(target_file, "w")
+							#f.write("{}{}".format(header, sequence))
+						#except:
+							#f.write("{}{}".format(header, sequence))
+					new_header = False
+		# Else the line must be the header
+		else:
+			header = line
+			coordinates = ':'.join(line.split(':')[4:6])
+			read_two_indice = line.split(':')[9].rstrip()
+			if coordinates not in r_one_coordinates_dict.keys() or read_two_indice not in indices_list:
+				test_list.append(line)
+				
+				consume(file, 3)
 			else:
-				header = line
-				coordinates = ':'.join(line.split(':')[4:6])
-				read_two_indice = line.split(':')[9].rstrip()
-				if coordinates not in r_one_coordinates_dict.keys() or read_two_indice not in indices_list:
-					test_list.append(line)
-					consume(file, 3)
-				else:
-					#skipper = False
-					new_header = True
+				#skipper = False
+				new_header = True
 
-	pass
+	close_all_files(files_to_close)
+	
+
+
+
+# Combines create_fastq_files and coordinates_barcodes_dictionary
+def create_coordinates_barcodes_dictionary (read_one, barcode_matrix, desired_barcodes, indices_list):
+	read_one_dic = {}
+	header = ''
+	coordinates = ''
+	read_one_file = open(read_one, 'r')
+	error_read_one_file = open(read_one + '.error' , 'a+')
+
+	for i, line in enumerate(read_one_file, 1):
+
+		# check line if it is header
+		if line[0] == "@":
+			line_indice = ''.join(line.split(':')[9]).rstrip()
+			
+			# if line_indice not in indices_list:
+			# 	# skipper = True
+			# 	consume(read_one_file, 3)
+			# 	continue
+			
+			coordinates = ':'.join(line.split(':')[4:6])
+			header = line
+			
+
+		# if it's not a header must be a sequence/+/quality
+		else:
+			# barcode is first 16 bp
+			barcode = ''.join(line[0:16])
+
+			# if it is a desired barcode, match it to read two
+			if barcode in desired_barcodes:
+				if line_indice in indices_list:
+					read_one_dic[coordinates] = barcode 
+				else:
+					error_read_one_file.write(header)
+					error_read_one_file.write(line)
+
+
+		if not i % 2:
+			consume(read_one_file, 2)
+
+	error_read_one_file.close()
+	read_one_file.close()
+
+	return read_one_dic
+
+
+# def match_reads (read_two, read_one_barcode, read_one_coords, barcode_matrix, output_directory)
+# 	found = False
+# 	coordinates = ''
+# 	new_header = True
+# 	read_two_file = open(read_two, 'r')
+
+# 	for line in read_two_file:
+
+# 		# Line is a header
+# 		if line[@] == "@":
+# 			header = line
+# 			coordinates = ':'.join(line.split(':')[4:6])
+# 			read_two_indice = line.split(':')[9].rstrip()
+			
+# 			# Not matching indice or cell barcode
+# 			if coordinates != read_one_coords or read_two_indice not in indices_list:
+# 				test_list.append(line)
+# 				consume(read_two_file, 3)
+# 			else:
+# 				#skipper = False
+# 				new_header = True
+		
+# 		# Line is sequence/+/quality
+# 		else:
+# 			# Continuting to write out + and quality information of read
+# 			if new_header == False:
+# 				f.write("{}".format(line))
+# 			elif coordinates 
+			
+
+
+
+	
+# 	read_one_file.close()
+# 	return found
+
+
 
 # Reads matrix csv and returns a data structure (dictionary) for O(1) access time
 def read_matrix (csv_matrix):
@@ -98,16 +189,20 @@ def read_matrix (csv_matrix):
 
 	# Reads cell barcode matrix and saves only: barcode + target into dictionary
 	with open(csv_matrix, 'r') as file:
-	    reader = csv.reader(file)
-	    skip_first = True
-	    for row in reader:
+		reader = csv.reader(file)
+		skip_first = True
+		for row in reader:
 			# Skips first row because there is no data in the first row
-	    	if skip_first == True: 
-	    		skip_first = False
-	    		continue
-    		else:
+			if skip_first == True: 
+				skip_first = False
+				continue
+			else:
 				# example: barcode_dictionary[CATACAGAGCACTCGC] = neg4
-		        barcode_dictionary[row[1].rstrip()] = row[5]
+				try:
+					barcode_dictionary[row[1].rstrip()] = row[5]
+				# repurposing to handle creating a dictionary from a plain text file
+				except:
+					barcode_dictionary[row[0].rstrip()] = 1
 
 	return barcode_dictionary
 
@@ -243,45 +338,6 @@ def filter_read_one (read_one, cell_barcode_coordinates_table, filtered_read_one
 	return read1_dictionary		
 
 
-# COMBINATION OF TWO ABOVE FUNCTIONS
-# Filters read one by cell barcode and index
-def coordinates_barcodes_dictionary (read_one, barcode_matrix, indices_list):
-
-	read1_dictionary = {}
-	file = open(read_one)
-	line_count = 0
-
-	# Goes through read1 and saves barcode + coordinate into a dictionary for O(1)
-	with file:
-		for i, line in enumerate(file, 1):
-
-			line_count = i
-			
-			# check line if it is header, save to maybe print later
-			if line[0] == "@":
-				coordinates = ':'.join(line.split(':')[4:6])
-				#barcode = ''.join(line.split(':')[9]).rstrip() + ":"
-				line_indice = ''.join(line.split(':')[9]).rstrip()
-				if line_indice not in indices_list:
-					#skipper = True
-					consume(file, 3)
-					continue
-			# if it's not a header must be a sequence
-			else:
-				# barcode is first 16 bp
-				barcode = ''.join(line[0:16])
-				# If barcode doesn't exist then skip otherwise adds it to the dictionary
-				if barcode in barcode_matrix:
-					read1_dictionary[coordinates] = barcode
-
-			# will skip lines 3 and 4 for performance
-			if not i % 2:
-				consume(file, 2)
-
-	read1_dictionary["LineCount"] = line_count*2
-	file.close()
-	return read1_dictionary
-
 
 # Creates a list given indices as input (assumes file is similar format to symlinks/Indices_A1.txt)
 def create_indices_list (indices_file):
@@ -303,12 +359,16 @@ def create_fastq_files (dir_name, indices_list, barcode_matrix):
 		unique_barcodes.add(val)
 
 	for group_name in unique_barcodes:
-		os.makedirs("{}/{}".format(dir_name, group_name))
-		for indice in indices_list:
-			file = open("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, indice), "a")
-			files_to_close.add(file)
+		try:
+			os.makedirs("{}/{}".format(dir_name, group_name))
+			for indice in indices_list:
+				file = open("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, indice), "a")
+				files_to_close.add(file)
+		except:
+			# Folders have already been made
+			pass
 
-	return files_to_close
+	close_all_files (files_to_close)
 
 # Closes all fastq files at the end 
 def close_all_files (files_set):
@@ -317,9 +377,9 @@ def close_all_files (files_set):
 	pass
 
 # Append to a dictionary to be read in by other python script
-def write_out_dictionary_csv (cell_barcode_coordinates_table, dictionary_path):
+def write_out_dictionary_csv (table, dictionary_path):
 	writer = csv.writer(open(dictionary_path, "a+"))
-	for key, val in cell_barcode_coordinates_table.items():
+	for key, val in table.items():
 		writer.writerow([key, val])
 
 
@@ -336,15 +396,18 @@ def write_to_log (start_time, log_path, message):
 # Function taken from the Python Package Index:
 # https://docs.python.org/3/library/itertools.html#itertools-recipes
 def consume(iterator, n=None):
-    "Advance the iterator n-steps ahead. If n is None, consume entirely."
-    # Use functions that consume iterators at C speed.
-    if n is None:
-        # feed the entire iterator into a zero-length deque
-        collections.deque(iterator, maxlen=0)
-    else:
-        # advance to the empty slice starting at position n
-        next(islice(iterator, n, n), None)
+	"Advance the iterator n-steps ahead. If n is None, consume entirely."
+	# Use functions that consume iterators at C speed.
+	if n is None:
+		# feed the entire iterator into a zero-length deque
+		collections.deque(iterator, maxlen=0)
+	else:
+		# advance to the empty slice starting at position n
+		next(islice(iterator, n, n), None)
 
+# Count number of lines in file QUICKLY
+def count_lines(filename):
+	return int(subprocess.check_output(['wc', '-l', filename]).split()[0])
 
 # ERROR CHECKING for cell_assign.py
 def error_check (csv_matrix, read1, read2, indices):

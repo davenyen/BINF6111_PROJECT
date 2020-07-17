@@ -15,4 +15,5 @@ Version 1.6:
 Version 1.7:
 	- parse_lane.py    	-> Created, integrating parse_read_one.py and cell_assign.py
 	- functions.py  	-> Created version 2 of create_target_directory
-						-> Creteated 
+						-> Altered a bunch of variables given to functions to integrate things better
+						-> Prints out read ones that don't have the right index to .error fastq 
