@@ -5,7 +5,7 @@
 
 #####
 # This master script launches this pipeline, run with:
-# ./master_script.sh ${output_path} ${data_path} ${barcodes_path} ${matrix_path} ${indices_path} ${ref_genome}
+# ./master_script.sh ${working_dir} ${data_path} ${matrix} ${desired_barcodes} ${indices} ${ref_genome}
 #
 
 # TODO
@@ -19,26 +19,26 @@
 
 # full run
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
-# matrix_path=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
-# barcodes_path=/Users/student/BINF6111_2020/test/test_list_barcodes.txt
-# indices_path=/Users/student/BINF6111_2020/data/Indices_A1.txt
-# output_path=/Users/student/BINF6111_2020/test/output
+# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
+# desired_barcodes=/Users/student/BINF6111_2020/test/test_list_barcodes.txt
+# indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
+# working_dir=/Users/student/BINF6111_2020/test/output
 
 # sanity check test
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
-# matrix_path=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
-# barcodes_path=/Users/student/BINF6111_2020/test/check_master_script/barcodesA1.csv
-# indices_path=/Users/student/BINF6111_2020/data/Indices_A1.txt
-# output_path=/Users/student/BINF6111_2020/test/check_master_script
+# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
+# desired_barcodes=/Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
+# indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
+# working_dir=/Users/student/BINF6111_2020/test/check_master_script
 
 # VARIABLES
-output_path=${1}
+working_dir=${1}
 data_path=${2}
-matrix_path=${3}
-barcodes_path=${4}
-indices_path=${5}
+matrix=${3}
+desired_barcodes=${4}
+indices=${5}
 ref_genome=${6}
-log=${output_path}/pipeline_log.txt
+log=${working_dir}/pipeline_log.txt
 
 exist=true #just for testing purposes
 identify_experiment_name=not_exist
@@ -85,10 +85,10 @@ for fastq in ${data_path}/*
 		echo [$(date)] "Reading ${file}" >> ${log}
 		
 		# rsync it over, this way is safer in case fastq is huge
-		rsync -avz ${fastq} ${output_path}
+		rsync -avz ${fastq} ${working_dir}
 		
 		# uncompress file in place
-		gunzip ${output_path}/${file}.qz
+		gunzip ${working_dir}/${file}.qz
 
 		
 	# else, go to the next file
@@ -99,17 +99,16 @@ for fastq in ${data_path}/*
 
 done
 
-# iterate through files in output_path to launch parsing of each lane
-for fastq in ${output_path}/*
+# iterate through files in working_dir to launch parsing of each lane
+for fastq in ${working_dir}/*
 	do
 
 	if [[ ${fastq} =~ ${file_regex} ]] && [[ 'R1' == ${BASH_REMATCH[3]} ]] 
 	then
-		experiment_name='test'
-		# python3 parse_read_one.py ${output_path}/*${BASH_REMATCH[1]}_R1*.fastq \
-		# ${barcodes_path} ${experiment_name}
+		lane=${BASH_REMATCH[2]}
+		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${indices} ${experiment_name}
 
-		echo [$(date)] "Completed lane: ${BASH_REMATCH[2]}" >> ${log}
+		echo [$(date)] "Completed lane: ${lane} " >> ${log}
 	fi
 
 done
@@ -126,12 +125,12 @@ done
 # 1. Create loop and iterate through Reads (match read1 to read2)
 # 2. Run cell_assign for each separate read1 + read2 matches 
 
-#python3 cell_assign.py ${matrix_path} ${} ${}
+#python3 cell_assign.py ${matrix} ${} ${}
 
 # ${experiment_name}_${group_name}
 
 ## ALIGN TO HUMAN GENOME
- #${ref_genome} ${output_path}
+ #${ref_genome} ${working_dir}
 
 ## TIDYING OUTPUT (output desired formats, clean temp files)
 

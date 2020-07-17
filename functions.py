@@ -1,13 +1,14 @@
 # Author:
-# Function: Holds functions for cell_assign.py and parse_fastq
-# Version: 1.5
+# Function: Holds functions for parse_lane.py
+# Version: 1.7
 
-import sys
-import collections
 import os
+import sys
 import time
 import csv
+import datetime
 import threading
+import collections
 from itertools import islice
 
 ############################################################################
@@ -105,73 +106,94 @@ def read_matrix (csv_matrix):
 	    		skip_first = False
 	    		continue
     		else:
+				# example: barcode_dictionary[CATACAGAGCACTCGC] = neg4
 		        barcode_dictionary[row[1].rstrip()] = row[5]
 
 	return barcode_dictionary
 
+# # Creates target directories and opens fastq files for impending appending
+# def create_target_directory (barcode_table, read_two):
+# 	read_two = read_two.split("/")[-1:]
+# 	read_two = read_two[0].split("L")[:-1]
+# 	output_directory = ("/Users/student/BINF6111_2020/test/sample_input/{}SORTED_GROUPS".format(read_two[0]))
+
+# 	# Creates the directory for the sorted groups to go into
+# 	try:
+# 		os.makedirs(output_directory[0])
+# 	except: #If excepts then the directory already exists 
+# 		command = input("The directory output '{}' already exists, would you like to append to it? (Y/N) (Default will rewrite the directory) ".format(''.join(output_directory)))
+# 		# Appends to current directory
+# 		if command.lower() == "y" or command.lower() == "yes":
+# 			#output_directory.append(True)
+# 			pass
+# 		# Rewrites the directory with new output
+# 		else:
+# 			try:
+# 				os.system("rm -r {}".format(output_directory))
+# 			except:
+# 				pass
+
+# 	return output_directory
+
+# VERSION 2
 # Creates target directories and opens fastq files for impending appending
-def create_target_directory (barcode_table, read_two):
-	read_two = read_two.split("/")[-1:]
-	read_two = read_two[0].split("L")[:-1]
-	output_directory = ("/Users/student/BINF6111_2020/test/sample_input/{}SORTED_GROUPS".format(read_two[0]))
+def create_target_directory (output_directory, append):
 
 	# Creates the directory for the sorted groups to go into
 	try:
-		os.makedirs(output_directory[0])
-	except: #If excepts then the directory already exists 
-		command = input("The directory output '{}' already exists, would you like to append to it? (Y/N) (Default will rewrite the directory) ".format(''.join(output_directory)))
-		# Appends to current directory
-		if command.lower() == "y" or command.lower() == "yes":
-			#output_directory.append(True)
+		os.makedirs(output_directory)
+	# Will append groups 
+	except:
+		if append:
 			pass
-		# Rewrites the directory with new output
 		else:
 			try:
 				os.system("rm -r {}".format(output_directory))
 			except:
 				pass
 
+
 	return output_directory
 
 # Make a dictionary of read1 where {coordinate: barcode} 
 # If read_one barcode does not exist in the matrix then skip (saves time)
 # Uses line count to know if read2 can be split into multiples of 2
-def coordinates_barcodes_dictionary (read_one, barcode_matrix, indices_list):
+# def coordinates_barcodes_dictionary (read_one, barcode_matrix, indices_list):
 
-	read1_dictionary = {}
-	file = open(read_one)
-	line_count = 0
+# 	read1_dictionary = {}
+# 	file = open(read_one)
+# 	line_count = 0
 
-	# Goes through read1 and saves barcode + coordinate into a dictionary for O(1)
-	with file:
-		for i, line in enumerate(file, 1):
+# 	# Goes through read1 and saves barcode + coordinate into a dictionary for O(1)
+# 	with file:
+# 		for i, line in enumerate(file, 1):
 
-			line_count = i
+# 			line_count = i
 			
-			# check line if it is header, save to maybe print later
-			if line[0] == "@":
-				coordinates = ':'.join(line.split(':')[4:6])
-				#barcode = ''.join(line.split(':')[9]).rstrip() + ":"
-				line_indice = ''.join(line.split(':')[9]).rstrip()
-				if line_indice not in indices_list:
-					#skipper = True
-					consume(file, 3)
-					continue
-			# if it's not a header must be a sequence
-			else:
-				# barcode is first 16 bp
-				barcode = ''.join(line[0:16])
-				# If barcode doesn't exist then skip otherwise adds it to the dictionary
-				if barcode in barcode_matrix:
-					read1_dictionary[coordinates] = barcode
+# 			# check line if it is header, save to maybe print later
+# 			if line[0] == "@":
+# 				coordinates = ':'.join(line.split(':')[4:6])
+# 				#barcode = ''.join(line.split(':')[9]).rstrip() + ":"
+# 				line_indice = ''.join(line.split(':')[9]).rstrip()
+# 				if line_indice not in indices_list:
+# 					#skipper = True
+# 					consume(file, 3)
+# 					continue
+# 			# if it's not a header must be a sequence
+# 			else:
+# 				# barcode is first 16 bp
+# 				barcode = ''.join(line[0:16])
+# 				# If barcode doesn't exist then skip otherwise adds it to the dictionary
+# 				if barcode in barcode_matrix:
+# 					read1_dictionary[coordinates] = barcode
 
-			# will skip lines 3 and 4 for performance
-			if not i % 2:
-				consume(file, 2)
+# 			# will skip lines 3 and 4 for performance
+# 			if not i % 2:
+# 				consume(file, 2)
 
-	read1_dictionary["LineCount"] = line_count*2
-	file.close()
-	return read1_dictionary
+# 	read1_dictionary["LineCount"] = line_count*2
+# 	file.close()
+# 	return read1_dictionary
 
 # DUPLICATE FUNCTION
 # SUGGESTION IS TO REPLACE ABOVE FUNCTION AND JUST READ IN DICTIONARY CREATED
@@ -220,6 +242,47 @@ def filter_read_one (read_one, cell_barcode_coordinates_table, filtered_read_one
 	file.close()
 	return read1_dictionary		
 
+
+# COMBINATION OF TWO ABOVE FUNCTIONS
+# Filters read one by cell barcode and index
+def coordinates_barcodes_dictionary (read_one, barcode_matrix, indices_list):
+
+	read1_dictionary = {}
+	file = open(read_one)
+	line_count = 0
+
+	# Goes through read1 and saves barcode + coordinate into a dictionary for O(1)
+	with file:
+		for i, line in enumerate(file, 1):
+
+			line_count = i
+			
+			# check line if it is header, save to maybe print later
+			if line[0] == "@":
+				coordinates = ':'.join(line.split(':')[4:6])
+				#barcode = ''.join(line.split(':')[9]).rstrip() + ":"
+				line_indice = ''.join(line.split(':')[9]).rstrip()
+				if line_indice not in indices_list:
+					#skipper = True
+					consume(file, 3)
+					continue
+			# if it's not a header must be a sequence
+			else:
+				# barcode is first 16 bp
+				barcode = ''.join(line[0:16])
+				# If barcode doesn't exist then skip otherwise adds it to the dictionary
+				if barcode in barcode_matrix:
+					read1_dictionary[coordinates] = barcode
+
+			# will skip lines 3 and 4 for performance
+			if not i % 2:
+				consume(file, 2)
+
+	read1_dictionary["LineCount"] = line_count*2
+	file.close()
+	return read1_dictionary
+
+
 # Creates a list given indices as input (assumes file is similar format to symlinks/Indices_A1.txt)
 def create_indices_list (indices_file):
 	indice_list = []
@@ -259,6 +322,15 @@ def write_out_dictionary_csv (cell_barcode_coordinates_table, dictionary_path):
 	for key, val in cell_barcode_coordinates_table.items():
 		writer.writerow([key, val])
 
+
+def write_to_log (start_time, log_path, message):
+	log_file = open(log_path, "a+")
+	log_file.write(str(datetime.datetime.now()))
+	run_time = str(datetime.timedelta(seconds=time.time() - start_time))
+	log_file.write("\nRuntime = {} h/m/s.\n".format(run_time))
+	log_file.write(message +"\n")
+	log_file.close()
+
 # This will allow iterating through the only header and sequence lines
 # to improve performance
 # Function taken from the Python Package Index:
@@ -272,6 +344,7 @@ def consume(iterator, n=None):
     else:
         # advance to the empty slice starting at position n
         next(islice(iterator, n, n), None)
+
 
 # ERROR CHECKING for cell_assign.py
 def error_check (csv_matrix, read1, read2, indices):

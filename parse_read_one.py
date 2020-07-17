@@ -47,7 +47,8 @@ if __name__ == '__main__':
 	cell_barcode_coordinates_table = filter_read_one (read_one, cell_barcode_coordinates_table, filtered_read_one)
 	write_out_dictionary_csv (cell_barcode_coordinates_table, dictionary_path)
 
-# Makes a log file of runtimes
+	# Makes a log file of runtimes
+	
 	log_file = open(os.path.dirname(read_one) + "/log.txt", "a+")
 	log_file.write(str(datetime.datetime.now()))
 	run_time = str(datetime.timedelta(seconds=time.time() - start_time))
