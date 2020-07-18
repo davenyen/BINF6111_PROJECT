@@ -8,7 +8,7 @@ import sys
 import time
 import datetime
 from functions import read_matrix, create_indices_list, create_coordinates_barcodes_dictionary, create_target_directory
-from functions import create_fastq_files, split_read_two, create_sorted_fastq_file, write_to_log, create_threads
+from functions import create_fastq_files, split_read_two, create_sorted_fastq_file, write_to_log, create_threads, close_all_files
 
 ## TODO
 ## Error checking will be done by master script
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 	group_barcode_matrix = read_matrix (csv_matrix)
 	indices_list = create_indices_list (indices_path)
 	dir_name = create_target_directory (output_dir, append_target_directory)
-	create_fastq_files (dir_name, indices_list, group_barcode_matrix)
+	file_dictionary = create_fastq_files (dir_name, indices_list, group_barcode_matrix)
 
 	start_time = time.time()
 	coord_barcode_matrix, line_count = create_coordinates_barcodes_dictionary (read_one, group_barcode_matrix, desired_barcodes, indices_list)
@@ -67,7 +67,8 @@ if __name__ == '__main__':
 		# split file function, optimise on num_threads variable
 		# run on split files
 		split_files, tmp_dir = split_read_two (read_two, line_count, 8, split_shortcut_dir)
-		create_threads (split_files, group_barcode_matrix, coord_barcode_matrix, dir_name, indices_list)
+		create_threads (split_files, group_barcode_matrix, coord_barcode_matrix, dir_name, indices_list, file_dictionary)
+		close_all_files (file_dictionary.values())
 		os.system("rm -r {}".format(tmp_dir))
 		message.append("COMPLETED")
 	else:
