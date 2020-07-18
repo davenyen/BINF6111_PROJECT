@@ -72,7 +72,7 @@ if __name__ == '__main__':
 		os.system("rm -r {}".format(tmp_dir))
 		message.append("COMPLETED")
 	else:
-		create_sorted_fastq_file (read_two, group_barcode_matrix, coord_barcode_matrix, output_dir, indices_list)
+		create_sorted_fastq_file (read_two, group_barcode_matrix, coord_barcode_matrix, output_dir, indices_list, file_dictionary)
 		message.append("COMPLETED")
 
 
