@@ -6,6 +6,8 @@ import sys
 import os
 import time
 import datetime
+import threading
+from subprocess import run, PIPE
 from collections import Counter
 from functions import create_threads, count_lines, split_read_two, create_fastq_files, read_matrix, create_target_directory, create_sorted_fastq_file, create_coordinates_barcodes_dictionary, error_check, close_all_files, create_indices_list, myThread
 
@@ -14,6 +16,9 @@ from functions import create_threads, count_lines, split_read_two, create_fastq_
 
 # Sample run cmd line:
 # python3 cell_assign.py symlinks/barcode_a1.csv symlinks/PilotCROP_L1_R1.fastq symlinks/PilotCROP_L1_R2.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
+
+# 100 mill line:
+# python3 cell_assign.py symlinks/barcode_a1.csv /Users/student/BINF6111_2020/test/100mil_test/100MILL_PilotCROP_C_1_S1_L001_R1_001.fastq /Users/student/BINF6111_2020/test/100mil_test/100MILL_PilotCROP_C_1_S1_L001_R2_001.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
 
 # TEST RUN USE THIS:
 # python3 cell_assign.py symlinks/barcode_a1.csv symlinks/SML_TEST_L1_R1.fastq symlinks/SML_TEST_L1_R2.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
@@ -49,18 +54,18 @@ if __name__ == '__main__':
 	# Change append to true for Lane 2
 	dir_name = create_target_directory ("/Users/student/BINF6111_2020/test/sample_input/FULL_RUN_SORT/", False)
 	coordinates_barcodes = create_coordinates_barcodes_dictionary (filtered_read_one, barcode_matrix, dbc_matrix, indices_list)
-	line_count = count_lines (filtered_read_one)
+	#line_count = count_lines (filtered_read_one)
 	# full lines = 1013795888
-	#line_count = 1013795888
+	line_count = 100000000
 
 
 	# SPLITS READ 2 INTO SMALLER FILES has to be divisible by 4 to get output (CHANGE -l)
-	lines_per_file = (line_count/8)
-	while lines_per_file%4 != 0:
-		lines_per_file += 2
+	#lines_per_file = (line_count/4)
+	#while lines_per_file%4 != 0:
+		#lines_per_file += 2
 
-	print(lines_per_file)
-	os.system("split -l{} {} 100M_L1_R2/split_".format(int(lines_per_file), read_two))
+	#print(lines_per_file)
+	#os.system("split -l{} {} 100M_L1_R2/split_".format(int(lines_per_file), read_two))
 
 	x = []
 
@@ -69,8 +74,9 @@ if __name__ == '__main__':
 
 	#x = split_read_two (read_two, line_count, 8, False)
 
+	threadLock = threading.Lock()	
 	create_fastq_files (dir_name, indices_list, barcode_matrix)
-	create_threads (x, barcode_matrix, coordinates_barcodes, dir_name, indices_list)
+	create_threads (x, barcode_matrix, coordinates_barcodes, dir_name, indices_list, threadLock)
 
 	# Makes a log file of runtimes
 	runtime_log = os.system("touch CA_LOG.txt")

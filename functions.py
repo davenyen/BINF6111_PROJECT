@@ -20,7 +20,7 @@ from Bio import SeqIO
 
 # Thread used for cell_assign for now
 class myThread (threading.Thread):
-	def __init__(self, threadID, name, read_two_file, barcode_matrix, r_one_coordinates_dict, dir_name, indices_list):
+	def __init__(self, threadID, name, read_two_file, barcode_matrix, r_one_coordinates_dict, dir_name, indices_list, threadLock):
 		threading.Thread.__init__(self)
 		self.threadID = threadID
 		self.name = name
@@ -29,11 +29,14 @@ class myThread (threading.Thread):
 		self.r_one_coordinates_dict = r_one_coordinates_dict
 		self.dir_name = dir_name
 		self.indices_list = indices_list
+		self.threadLock = threadLock
 
 	def run(self):
 		#print("Starting " + self.name)
+		self.threadLock.acquire()
 		create_sorted_fastq_file(self.read_two_file, self.barcode_matrix, self.r_one_coordinates_dict, self.dir_name, self.indices_list)
 		#print("Exiting " + self.name)
+		self.threadLock.release()
 
 ############################################################################
 ################################ FUNCTIONS #################################
@@ -47,6 +50,7 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, r_one_coordinates_d
 	coordinates = ''
 	new_header = True
 	files_to_close = set()
+	f = None
 
 	for line in file:
 		# if it's not a header must be a sequence/quality/+  
@@ -63,35 +67,27 @@ def create_sorted_fastq_file (read_two_file, barcode_matrix, r_one_coordinates_d
 					# If file and directory exists then append to it
 					if os.path.isdir("{}/{}".format(dir_name, group_name)) == True:
 						# Assumes since directory exists then file must too, so append for speed
-						#try:
 						target_file = ("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, read_two_indice))
 						f = open(target_file, "a")
 						files_to_close.add(f)
-							#f.write("{}{}".format(header, sequence))
-						#except:
+
 						f.write("{}{}".format(header, sequence))
-					# If output/(group) doesn't exist then makes it and writes the first 2 lines to it
-					#else:
-						#os.makedirs("{}/{}".format(dir_name, group_name))
-						# Creates fastq file for respective group 
-						#try:
-							#target_file = ("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, read_two_indice))
-							#f = open(target_file, "w")
-							#f.write("{}{}".format(header, sequence))
-						#except:
-							#f.write("{}{}".format(header, sequence))
+
 					new_header = False
+
 		# Else the line must be the header
 		else:
 			header = line
 			coordinates = ':'.join(line.split(':')[4:6])
 			read_two_indice = line.split(':')[9].rstrip()
+			if f:
+				f.close()
 			if coordinates not in r_one_coordinates_dict.keys() or read_two_indice not in indices_list:
 				consume(file, 3)
 			else:
-				#skipper = False
 				new_header = True
 
+	file.close()
 	close_all_files(files_to_close)
 	
 
@@ -103,7 +99,7 @@ def create_coordinates_barcodes_dictionary (read_one, barcode_matrix, desired_ba
 	read_one_file = open(read_one, 'r')
 	error_read_one_file = open(read_one + '.error' , 'a+')
 	start_time = time.time()
-	count = 0
+	#count = 0
 
 	for i, line in enumerate(read_one_file, 1):
 
@@ -153,7 +149,7 @@ def create_coordinates_barcodes_dictionary (read_one, barcode_matrix, desired_ba
 	message = []
 	write_to_log (start_time, log_path, '\n'.join(message))
 
-	return read_one_dic, count
+	return read_one_dic
 
 
 # Creates target directories
@@ -206,7 +202,7 @@ def create_fastq_files (dir_name, indices_list, barcode_matrix):
 	close_all_files (files_to_close)
 
 # Creates and run N threads
-def create_threads (split_files, barcode_matrix, r_one_coordinates_dict, dir_name, indices_list):
+def create_threads (split_files, barcode_matrix, r_one_coordinates_dict, dir_name, indices_list, threadLock):
 	""" Parameters:
 			split_files            = list of split files
 			barcode_matrix         = dictionary of {barcode: target}
@@ -220,7 +216,7 @@ def create_threads (split_files, barcode_matrix, r_one_coordinates_dict, dir_nam
 	threads = []
 	for i in range(0, len(split_files)):
 		threads.append(i)
-		threads[i] = myThread(("{}".format(i+1)), ("Thread {}".format(i+1)), split_files[i], barcode_matrix, r_one_coordinates_dict, dir_name, indices_list)
+		threads[i] = myThread(("{}".format(i+1)), ("Thread {}".format(i+1)), split_files[i], barcode_matrix, r_one_coordinates_dict, dir_name, indices_list, threadLock)
 		threads[i].start()
 	for i in range(0, len(threads)):
 		threads[i].join()
