@@ -36,6 +36,8 @@ EXPERIMENT_DIREC=$1
 REFERENCE_GENOME=$2
 LIB_BARCODES=$(<$3)
 STAR_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/STAR-2.5.2b/bin/MacOSX_x86_64/STAR"
+BAMCOVERAGE_RUN="/Users/rna/anaconda2/bin/bamCoverage"
+SAMTOOLS_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools"
 
 SUB_DIRECS=$(ls "$EXPERIMENT_DIREC") # get all the names of the sub-directories to go through
 
@@ -45,14 +47,14 @@ do
     IDS=""
     for direc in $SUB_DIRECS
     do
-        READ_FILES="${READ_FILES}${EXPERIMENT_DIREC}/${direc}/${barcode}.fastq,"
+        READ_FILES="${READ_FILES}${EXPERIMENT_DIREC}/${direc}/${direc}_${barcode}.fastq,"
         IDS="${IDS}ID:${direc} , "
     done
     READ_FILES=$(echo "$READ_FILES" | sed 's/,$//')
     IDS=$(echo "$IDS" | sed 's/ , $//')
 
     ADAPTOR="GATCGGAAGAGCACACGTCTGAACTCCAGTCAC${barcode}ATCTCGTATGCCGTCTTCTGCTTG"
-    "$STAR_RUN" --runThreadN 4 \
+    "$STAR_RUN" --runThreadN 8 \
         --genomeDir "$REFERENCE_GENOME" \
         --readFilesIn "$READ_FILES" \
         --outSAMattrRGline $IDS \
@@ -70,16 +72,26 @@ do
         --outFilterMatchNminOverLread 0.3 \
     
     # splits the big BAM file into the associated cell group BAM files
-    /Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools split "${EXPERIMENT_DIREC}/Aligned.sortedByCoord.out.bam" -f "${EXPERIMENT_DIREC}/%!.${barcode}.bam"
+    /Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools split "${EXPERIMENT_DIREC}/Aligned.sortedByCoord.out.bam" -f "${EXPERIMENT_DIREC}/%!_${barcode}.bam"
 
     #mv [filename] [dest-dir]
     for direc in $SUB_DIRECS
     do
-       mv "${EXPERIMENT_DIREC}/${direc}.${barcode}.bam" "${EXPERIMENT_DIREC}/${direc}"
+       mv "${EXPERIMENT_DIREC}/${direc}_${barcode}.bam" "${EXPERIMENT_DIREC}/${direc}"
     done
 done
 
+for direc in $SUB_DIRECS
+do
+    BAM_FILES=$(ls ${EXPERIMENT_DIREC}/${direc}/*.bam)
+    $SAMTOOLS_RUN merge --threads 8 -c "${EXPERIMENT_DIREC}/${direc}/${direc}.bam" $BAM_FILES
+    rm $BAM_FILES
+done
 
+for direc in $SUB_DIRECS
+do
+    $SAMTOOLS_RUN index --threads 8 -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam"
+    $BAMCOVERAGE_RUN -p 8 -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam" -of bigwig -o "${EXPERIMENT_DIREC}/${direc}/${direc}.bw" > /dev/null 2>&1
+done
 
-#/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools index -b "${EXPERIMENT_DIREC}/ARPC2/Aligned.sortedByCoord.out.bam"
 #/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools view -h -o "${EXPERIMENT_DIREC}/ARPC2/out.sam" "${EXPERIMENT_DIREC}/ARPC2/Aligned.sortedByCoord.out.bam"
