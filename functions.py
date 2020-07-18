@@ -102,6 +102,8 @@ def create_coordinates_barcodes_dictionary (read_one, barcode_matrix, desired_ba
 	coordinates = ''
 	read_one_file = open(read_one, 'r')
 	error_read_one_file = open(read_one + '.error' , 'a+')
+	start_time = time.time()
+	count = 0
 
 	for i, line in enumerate(read_one_file, 1):
 
@@ -112,11 +114,13 @@ def create_coordinates_barcodes_dictionary (read_one, barcode_matrix, desired_ba
 			# faster if this happens so maybe we should have a flag to turn it on and off?
 			if line_indice not in indices_list:
 				consume(read_one_file, 3)
+				# count += 4
 				#error_read_one_file.write(line)
 				continue
 			
 			coordinates = ':'.join(line.split(':')[4:6])
 			#header = line
+			# count += 1
 			
 		# if it's not a header must be a sequence/+/quality
 		else:
@@ -136,13 +140,21 @@ def create_coordinates_barcodes_dictionary (read_one, barcode_matrix, desired_ba
 				#error_read_one_file.write(header)
 				#pass
 
+			# count += 1
+
 		if not i % 2:
 			consume(read_one_file, 2)
+			# count += 2
 
 	error_read_one_file.close()
 	read_one_file.close()
 
-	return read_one_dic
+	log_path = "/Users/student/BINF6111_2020/test/100mil_test/pipeline_log.txt"
+	message = []
+	write_to_log (start_time, log_path, '\n'.join(message))
+
+	return read_one_dic, count
+
 
 # Creates target directories
 def create_target_directory (output_directory, append):
@@ -241,7 +253,7 @@ def split_read_two (read_two_file, line_count, thread_numbers, shortcut):
 		split_files.append(filename)
 		with open(filename, "w") as handle:
 			count = SeqIO.write(batch, handle, "fastq")
-		#print("Wrote %i records to %s" % (count, filename))
+		print("Wrote %i records to %s" % (count, filename))
 
 	return split_files
 

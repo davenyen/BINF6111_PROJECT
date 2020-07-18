@@ -22,8 +22,9 @@ if __name__ == '__main__':
 	desired_barcodes = sys.argv[3]
 	indices_path = sys.argv[4]
 	experiment_name = sys.argv[5]
-	append_target_directory = True # sys.argv[6]
-	# num_threads = 4 # sys.argv[7]
+	num_threads = 0 # sys.argv[6]
+	append_target_directory = True # sys.argv[7]
+	
 
 	## Derived
 	working_dir = os.path.dirname(read_one)
@@ -47,7 +48,7 @@ if __name__ == '__main__':
 	message.append('output_dir = ' + output_dir)
 	write_to_log (start_time, log_path, '\n'.join(message))
 	message = []
-	start_time = time.time()
+	
 
 	# MAIN FUNCTIONS
 
@@ -58,16 +59,18 @@ if __name__ == '__main__':
 	dir_name = create_target_directory (output_dir, append_target_directory)
 	create_fastq_files (dir_name, indices_list, group_barcode_matrix)
 
+	start_time = time.time()
 	# Function to split files that that are large
-	file_line_count = count_lines (read_one)
-	if file_line_count >= maaaaaaaaany_lines:
-		# open_files = []
+
+	coord_barcode_matrix, line_count = create_coordinates_barcodes_dictionary (read_one, group_barcode_matrix, desired_barcodes, indices_list)
+
+
+	if line_count >= maaaaaaaaany_lines and num_threads != 0:
 		# split file function, optimise on num_threads variable
 		# run on split files
 		message.append("LARGE FILES NOT YET IMPLEMENTED")
 		pass
 	else:
-		coord_barcode_matrix = create_coordinates_barcodes_dictionary (read_one, group_barcode_matrix, desired_barcodes, indices_list)
 		create_sorted_fastq_file (read_two, group_barcode_matrix, coord_barcode_matrix, output_dir, indices_list)
 		message.append("COMPLETED")
 

@@ -31,6 +31,13 @@
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
 # working_dir=/Users/student/BINF6111_2020/test/check_master_script
 
+# 100mil
+# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
+# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
+# desired_barcodes=/Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
+# indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
+# working_dir=/Users/student/BINF6111_2020/test/100mil_test
+
 # VARIABLES
 working_dir=${1}
 data_path=${2}
@@ -39,6 +46,8 @@ desired_barcodes=${4}
 indices=${5}
 ref_genome=${6}
 log=${working_dir}/pipeline_log.txt
+# threads=0 calculate this from getopt (voluntary to change how many threads)
+# append_to_target_directory is false for L001 and true for successive lanes
 
 exist=true #just for testing purposes
 identify_experiment_name=not_exist
@@ -47,6 +56,7 @@ file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+.fastq[.gz]?$'
 # error handling inputs (LATER)
 # translate groups into cell barcodes (LATER/optional)
 # get files with the reads in them from directory
+
 
 
 for fastq in ${data_path}/*
@@ -106,7 +116,7 @@ for fastq in ${working_dir}/*
 	if [[ ${fastq} =~ ${file_regex} ]] && [[ 'R1' == ${BASH_REMATCH[3]} ]] 
 	then
 		lane=${BASH_REMATCH[2]}
-		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${indices} ${experiment_name}
+		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${indices} ${experiment_name} ${threads}
 
 		echo [$(date)] "Completed lane: ${lane} " >> ${log}
 	fi
@@ -114,9 +124,6 @@ for fastq in ${working_dir}/*
 done
 
 
-## CELL ASSIGNMENT
-
-# ${experiment_name}_${group_name}
 
 ## ALIGN TO HUMAN GENOME
  #${ref_genome} ${working_dir}

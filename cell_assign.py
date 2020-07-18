@@ -49,8 +49,26 @@ if __name__ == '__main__':
 	# Change append to true for Lane 2
 	dir_name = create_target_directory ("/Users/student/BINF6111_2020/test/sample_input/FULL_RUN_SORT/", False)
 	coordinates_barcodes = create_coordinates_barcodes_dictionary (filtered_read_one, barcode_matrix, dbc_matrix, indices_list)
-	#line_count = count_lines (filtered_read_one)
-	x = split_read_two (read_two, 1013795888, 8, False)
+	line_count = count_lines (filtered_read_one)
+	# full lines = 1013795888
+	#line_count = 1013795888
+
+
+	# SPLITS READ 2 INTO SMALLER FILES has to be divisible by 4 to get output (CHANGE -l)
+	lines_per_file = (line_count/8)
+	while lines_per_file%4 != 0:
+		lines_per_file += 2
+
+	print(lines_per_file)
+	os.system("split -l{} {} 100M_L1_R2/split_".format(int(lines_per_file), read_two))
+
+	x = []
+
+	for split_file in os.listdir("100M_L1_R2"):
+		x.append("100M_L1_R2/{}".format(split_file))
+
+	#x = split_read_two (read_two, line_count, 8, False)
+
 	create_fastq_files (dir_name, indices_list, barcode_matrix)
 	create_threads (x, barcode_matrix, coordinates_barcodes, dir_name, indices_list)
 
