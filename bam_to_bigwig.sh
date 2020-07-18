@@ -1,11 +1,20 @@
 #!/bin/bash
 
+# pass in the directory to the experiment/sample
+
 # can use star aligner to output both BAM and wiggle
 # --outSAMtype BAM Unsorted SortedByCoordinate
 # --outWigType wiggle
 
-BEDTOOLS_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/bedtools2/bin/intersectBed"
+EXPERIMENT_DIREC=$1
+BAMCOVERAGE_RUN="/Users/rna/anaconda2/bin/bamCoverage"
+SAMTOOLS_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools"
 
-$("$BEDTOOLS_RUN" genomecov -bg -ibam PilotCROP_C_1_S1_SORTED_GROUPS/ARPC2/Aligned.out.bam -split -scale 1.0 > test.bedgraph)
-$(bedGraphToBigWig test.bedgraph test.fasta.chrom.sizes kent.bw )
-$(rm test.bedgraph)
+SUB_DIRECS=$(ls -d "${EXPERIMENT_DIREC}/*/")
+
+for direc in $SUB_DIRECS
+do
+    $SAMTOOLS_RUN index -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam"
+    $BAMCOVERAGE_RUN -p 4 -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam" -of bigwig -o "${EXPERIMENT_DIREC}/${direc}/${direc}.bw" > /dev/null 2>&1
+done
+
