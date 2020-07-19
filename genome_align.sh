@@ -71,13 +71,14 @@ do
     # run STAR aligner to map all the fastq files across all the target cell sub-directories
     # with the same adaptor sequence and library barcode
     # (STAR is only run depending on the number of library barcodes)
+    # --outFileNamePrefix -> output BAM files into sample directory
     "$STAR_RUN" --runThreadN 8 \
         --genomeDir "$REFERENCE_GENOME" \
         --readFilesIn "$READ_FILES" \
         --outSAMattrRGline $IDS \
         --clip3pAdapterSeq "$ADAPTOR" \
         --outSAMtype BAM SortedByCoordinate \
-        --outFileNamePrefix "${EXPERIMENT_DIREC}/" \ # output BAM files into sample directory
+        --outFileNamePrefix "${EXPERIMENT_DIREC}/" \ 
         --outSJfilterOverhangMin 15 15 15 15 \
         --alignSJoverhangMin 15 \
         --alignSJDBoverhangMin 15 \
