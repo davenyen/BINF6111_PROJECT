@@ -17,6 +17,8 @@ from functions import close_all_files, create_indices_list, myThread
 
 # Full run test:
 # python3 cell_assign.py symlinks/barcode_a1.csv symlinks/PilotCROP_L1_R1.fastq symlinks/PilotCROP_L1_R2.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
+# L2:
+# python3 cell_assign.py symlinks/barcode_a1.csv symlinks/PilotCROP_L2_R1.fastq symlinks/PilotCROP_L2_R2.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
 
 # 100M test:
 # python3 cell_assign.py symlinks/barcode_a1.csv /Users/student/BINF6111_2020/test/100mil_test/100MILL_PilotCROP_C_1_S1_L001_R1_001.fastq /Users/student/BINF6111_2020/test/100mil_test/100MILL_PilotCROP_C_1_S1_L001_R2_001.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
@@ -49,8 +51,8 @@ if __name__ == '__main__':
 	desired_barcodes = sys.argv[5]
 	start_time = time.time()
 	append = True
-	split_directory = "/Users/student/BINF6111_2020/test/100mil_test/100M_L2_R2"
-	output_directory = "/Users/student/BINF6111_2020/test/100mil_test/D_SORTED_GROUPS"
+	split_directory = "/Users/student/BINF6111_2020/test/full_data/L1_SPLIT8/"
+	output_directory = "/Users/student/BINF6111_2020/test/full_data/D_SORTED_GROUPS"
 
 	#"/Users/student/BINF6111_2020/test/full_data/L1_R2_SPLIT_8/"
 	#"/Users/student/BINF6111_2020/test/full_data/D_Sorted_Groups/"
