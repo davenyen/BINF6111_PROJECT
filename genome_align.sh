@@ -78,7 +78,7 @@ do
         --outSAMattrRGline $IDS \
         --clip3pAdapterSeq "$ADAPTOR" \
         --outSAMtype BAM SortedByCoordinate \
-        --outFileNamePrefix "${EXPERIMENT_DIREC}/" \ 
+        --outFileNamePrefix "${EXPERIMENT_DIREC}/" \
         --outSJfilterOverhangMin 15 15 15 15 \
         --alignSJoverhangMin 15 \
         --alignSJDBoverhangMin 15 \

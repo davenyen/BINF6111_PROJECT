@@ -81,7 +81,6 @@ def create_coordinates_barcodes_dictionary (read_one, barcode_matrix, desired_ba
 	coordinates = ''
 	read_one_file = open(read_one, 'r')
 	#error_read_one_file = open(read_one + '.error' , 'a+')
-	start_time = time.time()
 	line_count = 0
 
 	for i, line in enumerate(read_one_file, 1):
@@ -124,10 +123,6 @@ def create_coordinates_barcodes_dictionary (read_one, barcode_matrix, desired_ba
 
 	#error_read_one_file.close()
 	read_one_file.close()
-
-	log_path = "/Users/student/BINF6111_2020/test/100mil_test/pipeline_log.txt"
-	message = []
-	write_to_log (start_time, log_path, '\n'.join(message))
 
 	return read_one_dic, line_count+i
 
@@ -287,6 +282,7 @@ def write_to_log (start_time, log_path, message):
 	run_time = str(datetime.timedelta(seconds=time.time() - start_time))
 	log_file.write("\nRuntime = {} h/m/s.\n".format(run_time))
 	log_file.write(message +"\n")
+	log_file.write("---------------------------------------------\n")
 	log_file.close()
 
 # This will allow iterating through the only header and sequence lines

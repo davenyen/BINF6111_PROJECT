@@ -20,9 +20,9 @@
 # full run
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
 # matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
-# desired_barcodes=/Users/student/BINF6111_2020/test/test_list_barcodes.txt
+# desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
-# working_dir=/Users/student/BINF6111_2020/test/output
+# working_dir=/Users/student/BINF6111_2020/test/full_run
 
 # sanity check test
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
@@ -38,6 +38,13 @@
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
 # working_dir=/Users/student/BINF6111_2020/test/100mil_test
 
+# 10 million
+# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
+# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
+# desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
+# indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
+# working_dir=/Users/student/BINF6111_2020/test/10mil_run
+
 # VARIABLES
 working_dir=${1}
 data_path=${2}
@@ -51,34 +58,18 @@ log=${working_dir}/pipeline_log.txt
 
 exist=true #just for testing purposes
 identify_experiment_name=not_exist
-file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+.fastq[.gz]?$'
+file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+\.fastq(\.gz)?$'
 
 # error handling inputs (LATER)
 # translate groups into cell barcodes (LATER/optional)
 # get files with the reads in them from directory
-
-
+echo "===========================================================" >> ${log}
+echo [$(date)] "PID: $$" >> ${log}
+echo "===========================================================" >> ${log}
 
 for fastq in ${data_path}/*
 	do
 	fastq=$(basename ${fastq})
-	
-	# grab name of experiment (everything before the lane number)
-	if [[ ${identify_experiment_name} == 'not_exist' ]]
-	then
-		if [[ ${fastq} =~ ${file_regex} ]]
-		then
-			experiment_name=${BASH_REMATCH[1]}
-			echo [$(date)] "Running pipeline on experiment: ${experiment_name}" >> ${log}
-			identify_experiment_name=true
-
-		else
-			echo [$(date)] "Error: Can't identify experiment name, will name experiment as 'sample_1'" >> ${log}
-			experiment_name='sample_1'
-			echo [$(date)] "Running pipeline on experiment: ${experiment_name}" >> ${log}
-			identify_experiment_name=true  
-		fi
-	fi
 
 	# Steps are:
 		# 1) check which read file
@@ -113,10 +104,32 @@ done
 for fastq in ${working_dir}/*
 	do
 
+	# grab name of experiment (everything before the lane number)
+	if [[ ${identify_experiment_name} == 'not_exist' ]]
+	then
+		if [[ ${fastq} =~ ${file_regex} ]]
+		then
+			experiment_name=${BASH_REMATCH[1]}
+		else
+			echo [$(date)] "Error: Can't identify experiment name, will name experiment as 'sample_1'" >> ${log}
+			experiment_name='sample_1'
+		fi
+
+		echo [$(date)] "Running pipeline on experiment: ${experiment_name}" >> ${log}
+			identify_experiment_name=true
+	fi
+
 	if [[ ${fastq} =~ ${file_regex} ]] && [[ 'R1' == ${BASH_REMATCH[3]} ]] 
 	then
 		lane=${BASH_REMATCH[2]}
-		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${indices} ${experiment_name} ${threads}
+		if [[ ${lane} == "LOO1" ]]
+			then
+			append_status=0
+		else 
+			append_status=1
+		fi
+
+		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${indices} ${experiment_name} ${append_status} ${threads}
 
 		echo [$(date)] "Completed lane: ${lane} " >> ${log}
 	fi
@@ -131,4 +144,3 @@ done
 ## TIDYING OUTPUT (output desired formats, clean temp files)
 
 echo "===========================================================" >> ${log}
-echo "" >> ${log}
