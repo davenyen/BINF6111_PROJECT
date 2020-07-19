@@ -1,0 +1,24 @@
+Version 1.4:
+	- cell_assign.py	-> Added Indices argument
+	- functions.py		-> Changed output file names to {target}/{target}_{indice}.fastq
+						-> R1 functionality, filters unwanted indices
+
+Version 1.5:
+	- cell_assign.py 	-> Added Threading
+	- functions.py   	-> Changed return value of create_sorted_fastq_file
+					 	-> New function, create_fastq_files
+
+Version 1.6:
+	- master_script.sh 	-> total restructure, split copying and decompressing from 
+						and manipulation of output file
+	
+Version 1.7:
+	- parse_lane.py    	-> Created, integrating parse_read_one.py and cell_assign.py
+	- functions.py  	-> Created version 2 of create_target_directory
+						-> Altered a bunch of variables given to functions to integrate things better
+						-> Prints out read ones that don't have the right index to .error fastq
+
+Version 1.8:
+	- parse_lane.py    	-> Created, integrating parse_read_one.py and cell_assign.py
+	- functions.py  	-> Created threads function (makes and starts threads)
+						-> Created split files function (can input number of threads) [Default is 8 bc 3 hrs is ceebs]
