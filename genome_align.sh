@@ -32,35 +32,52 @@
 
 # Reference genome "/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index"
 # Sample library indexes "../test/team_b_stuff/A1_sample_indices.txt"
-EXPERIMENT_DIREC=$1
-REFERENCE_GENOME=$2
-LIB_BARCODES=$(<$3)
+EXPERIMENT_DIREC=$1 # directory to samples is passed in as the first argument
+REFERENCE_GENOME=$2 # directory to reference genome index is passed in as the second argument
+LIB_BARCODES=$(<$3) # text file containing library barcodes passed in as third argument + reads contents/stores as string
+
+# pathways/directories to run different programs
 STAR_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/STAR-2.5.2b/bin/MacOSX_x86_64/STAR"
-BAMCOVERAGE_RUN="/Users/rna/anaconda2/bin/bamCoverage"
+BAMCOVERAGE_RUN="/Users/rna/anaconda2/bin/bamCoverage" # deepTools bamCoverage
 SAMTOOLS_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools"
 
 SUB_DIRECS=$(ls "$EXPERIMENT_DIREC") # get all the names of the sub-directories to go through
 
+# go through each library barcode (number of runs depends on the number of library barcodes)
 for barcode in $LIB_BARCODES
 do
-    READ_FILES=""
-    IDS=""
+    READ_FILES="" # string to store a list of files that need to be read into STAR aligner
+    IDS="" # string to store a list of IDs to identify which reads belong to what target cell group
+    
+    # go through each sub-directory (ie. target cell group directory) in the experiment/sample directory
     for direc in $SUB_DIRECS
     do
+        # append each read file corresponding with one of the four library barcodes
+        # across all target cell group sub-directories into a string
         READ_FILES="${READ_FILES}${EXPERIMENT_DIREC}/${direc}/${direc}_${barcode}.fastq,"
-        IDS="${IDS}ID:${direc} , "
+        
+        # using the target cell group name as an ID for each fastq read file
+        # the ordering of the IDs corresponds to the ordering of the files in READ_FILES
+        # ie. the first ID in IDs is the ID used for the fastq reads in the first target cell group
+        IDS="${IDS}ID:${direc} , " 
     done
-    READ_FILES=$(echo "$READ_FILES" | sed 's/,$//')
-    IDS=$(echo "$IDS" | sed 's/ , $//')
+    READ_FILES=$(echo "$READ_FILES" | sed 's/,$//') # removes final comma from string (not needed)
+    IDS=$(echo "$IDS" | sed 's/ , $//') # removes final comma + whitespace from string
 
+    # inserting barcode string into appropriate position in the adaptor sequence
+    # This adaptor sequence was given to us by Irina Voineagu's lab (2020)
     ADAPTOR="GATCGGAAGAGCACACGTCTGAACTCCAGTCAC${barcode}ATCTCGTATGCCGTCTTCTGCTTG"
+
+    # run STAR aligner to map all the fastq files across all the target cell sub-directories
+    # with the same adaptor sequence and library barcode
+    # (STAR is only run depending on the number of library barcodes)
     "$STAR_RUN" --runThreadN 8 \
         --genomeDir "$REFERENCE_GENOME" \
         --readFilesIn "$READ_FILES" \
         --outSAMattrRGline $IDS \
         --clip3pAdapterSeq "$ADAPTOR" \
         --outSAMtype BAM SortedByCoordinate \
-        --outFileNamePrefix "${EXPERIMENT_DIREC}/" \
+        --outFileNamePrefix "${EXPERIMENT_DIREC}/" \ # output BAM files into sample directory
         --outSJfilterOverhangMin 15 15 15 15 \
         --alignSJoverhangMin 15 \
         --alignSJDBoverhangMin 15 \
@@ -71,10 +88,11 @@ do
         --outFilterScoreMinOverLread 0.3 \
         --outFilterMatchNminOverLread 0.3 \
     
-    # splits the big BAM file into the associated cell group BAM files
+    # splits the big BAM file into the associated target cell group BAM files
     /Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools split "${EXPERIMENT_DIREC}/Aligned.sortedByCoord.out.bam" -f "${EXPERIMENT_DIREC}/%!_${barcode}.bam"
 
     #mv [filename] [dest-dir]
+    
     for direc in $SUB_DIRECS
     do
        mv "${EXPERIMENT_DIREC}/${direc}_${barcode}.bam" "${EXPERIMENT_DIREC}/${direc}"
@@ -88,6 +106,7 @@ do
     rm $BAM_FILES
 done
 
+# move into loop above
 for direc in $SUB_DIRECS
 do
     $SAMTOOLS_RUN index --threads 8 -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam"
