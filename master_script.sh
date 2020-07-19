@@ -5,14 +5,12 @@
 
 #####
 # This master script launches this pipeline, run with:
-# ./master_script.sh ${working_dir} ${data_path} ${matrix} ${desired_barcodes} ${indices} ${ref_genome}
+# nohup ./master_script.sh ${working_dir} ${data_path} ${matrix} ${desired_barcodes} ${indices} ${ref_genome} &
 #
 
 # TODO
 # getopts to handle argument flags 
 # error handling for arguments 
-# (OPTIONAL) ability to resume the pipeline halfway, so detect 
-#	files in output folder already
 #
 
 # TEST CASES
@@ -27,7 +25,7 @@
 # sanity check test
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
 # matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
-# desired_barcodes=/Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
+# desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
 # working_dir=/Users/student/BINF6111_2020/test/check_master_script
 
@@ -122,7 +120,7 @@ for fastq in ${working_dir}/*
 	if [[ ${fastq} =~ ${file_regex} ]] && [[ 'R1' == ${BASH_REMATCH[3]} ]] 
 	then
 		lane=${BASH_REMATCH[2]}
-		if [[ ${lane} == "LOO1" ]]
+		if [[ ${lane} == "L001" ]]
 			then
 			append_status=0
 		else 
@@ -143,4 +141,5 @@ done
 
 ## TIDYING OUTPUT (output desired formats, clean temp files)
 
+echo [$(date)] "Completed pipeline for: ${experiment_name} " >> ${log}
 echo "===========================================================" >> ${log}
