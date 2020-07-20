@@ -1,119 +1,164 @@
 #!/bin/bash
 
+# Author: Chelsea Liang
+# Function: Parses reads (python) and launches alignments (bash)
+
 #####
 # This master script launches this pipeline, run with:
-# ./master_script.sh ${data_path} ${list_path} ${matrix_path} ${output_path}
+# nohup ./master_script.sh ${working_dir} ${data_path} ${matrix} ${desired_barcodes} ${indices} ${ref_genome} &
 #
 
-## PROCCESSING INPUT
+# TODO
+# getopts to handle argument flags 
+# error handling for arguments 
+#
 
-# test inputs
-# data_path='/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1'
-# matrix_path='/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv'
-# list_path='/Users/student/BINF6111_2020/test/test_list_barcodes.txt'
-# output_path='/Users/student/BINF6111_2020/test/output'
+# TEST CASES
 
-# set variables
-data_path=${1}
-matrix_path=${2}
-list_path=${3}
-output_path=${4}
-ref_genome=${5}
-verbose=true # fix this later, use getopts to parse variable options!
-not_exist=false #just for testing purposes
+# full run A1
+# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
+# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
+# desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
+# indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
+# working_dir=/Users/student/BINF6111_2020/test/full_run
 
-# flag if fastq are already uncompressed
+# full run A2
+# make a new fastq so turn off those flags and allow transfer
+# write thing to combine negs all into one folder
+# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A2
+# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A2.csv
+# desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA2.txt
+# indices=/Users/student/BINF6111_2020/data/Indices_A2.txt
+# working_dir=/Users/student/BINF6111_2020/test/full_run_A2
 
+
+# sanity check test
+# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
+# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
+# desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
+# indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
+# working_dir=/Users/student/BINF6111_2020/test/check_master_script
+# ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
+
+# 100mil
+# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
+# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
+# desired_barcodes=/Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
+# indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
+# working_dir=/Users/student/BINF6111_2020/test/100mil_test
+
+# 10 million
+# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
+# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
+# desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
+# indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
+# working_dir=/Users/student/BINF6111_2020/test/10mil_run
+
+# VARIABLES
+working_dir=${1}
+data_path=${2}
+matrix=${3}
+desired_barcodes=${4}
+indices=${5}
+ref_genome=${6}
+threads=8 #calculate this from getopt (voluntary to change how many threads)
+bigwig=true
+
+exist=true #just for testing purposes
+log=${working_dir}/pipeline_log.txt
+identify_experiment_name=not_exist
+file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+\.fastq(\.gz)?$'
 
 # error handling inputs (LATER)
-
-# some newline so I can see my debugging output
-echo ""
-echo ""
-echo ""
-echo ""
-
 # translate groups into cell barcodes (LATER/optional)
-
-
-
 # get files with the reads in them from directory
-en_regex='(.+)_L[0-9]{3}_.+'
-read_regex='.+_(R[12])_.+.fastq.gz$'
+echo "===========================================================" >> ${log}
+echo [$(date)] "PID: $$" >> ${log}
+echo "===========================================================" >> ${log}
 
-# # test
-# en_regex='(test)_.+_L[0-9]{3}_.+'
-# read_regex='test_.+_(R[12])_.+.fastq$'
 for fastq in ${data_path}/*
-    do
-    
-    # grab name of experiment (everything before the lane number)
-    if [[ ${fastq} =~ ${en_regex} ]]
-    then
-        experiment_name=$(basename ${BASH_REMATCH[1]})
-    else
-        echo "can't identify experiment name, will name experiment as 'sample_1'"
-        experiment_name='sample_1'   
-    fi
+	do
+	fastq=$(basename ${fastq})
 
-    # Steps are:
-        # 1) check which read file
-        # 2) decompress file
-        # 3) process reads using python to open file, look for cell barcodes, write reads to new_files
+	# Steps are:
+		# 1) check which read file
+		# 2) uncompress file
+		# 3) process reads using python to open file, look for cell barcodes, write reads to new_files
 
-    # ability to resume the pipeline halfway, so detect files in output folder already
 
-    # check file is a read file
-    if [[ ${fastq} =~ ${read_regex} ]]
-    then
-        file=$(basename ${fastq} .gz)
-        if ${verbose}; then echo "Reading ${file}"; fi
+	if ${exist}; then echo [$(date)] "Already copied and uncompresseed fastqs" >> ${log}; break; fi
 
-        if ${not_exist}
-        then
-            # rsync it over, this way is safer in case fastq is huge
-            rsync -avz ${fastq} ${output_path}
-            
-            # uncompress file in place
-            gunzip ${output_path}/${file}.qz
-        fi
+	# check file is a read file
+	if [[ ${fastq} =~ ${file_regex} ]]
+	then
+		file=$(basename ${fastq} .gz)
+		echo [$(date)] "Reading ${file}" >> ${log}
+		
+		# rsync it over, this way is safer in case fastq is huge
+		rsync -avz ${fastq} ${working_dir}
+		
+		# uncompress file in place
+		gunzip ${working_dir}/${file}.qz
 
-        # process read 1 file for the cell barcodes
-        if [[ 'R1' == ${BASH_REMATCH[1]} ]]
-        then
-            experiment_name='test'
-            python3 parse_fastq.py ${output_path}/${experiment_name}_*_R1_001.fastq \
-            ${list_path} ${experiment_name} ${BASH_REMATCH[1]}
-        fi
-
-        # delete full fastq after we are done with testing phase
-
-        
-    # else, go to the next file
-    else  
-        if ${verbose}; then echo "Not a read file"; fi
-        continue
-    fi
+		
+	# else, go to the next file
+	else  
+		echo [$(date)] "${fastq} is not a fastq file" >> ${log}
+		continue
+	fi
 
 done
 
-# print if verbose
-if ${verbose}; then echo "Running pipeline on experiment: ${experiment_name}"; fi
+# iterate through files in working_dir to launch parsing of each lane
+for fastq in ${working_dir}/*
+	do
+
+	# grab name of experiment (everything before the lane number)
+	if [[ ${identify_experiment_name} == 'not_exist' ]]
+	then
+		if [[ ${fastq} =~ ${file_regex} ]]
+		then
+			experiment_name=${BASH_REMATCH[1]}
+		else
+			echo [$(date)] "Error: Can't identify experiment name, will name experiment as 'sample_1'" >> ${log}
+			experiment_name='sample_1'
+		fi
+
+		echo [$(date)] "Running pipeline on experiment: ${experiment_name}" >> ${log}
+			identify_experiment_name=true
+	fi
+
+	if [[ ${fastq} =~ ${file_regex} ]] && [[ 'R1' == ${BASH_REMATCH[3]} ]] 
+	then
+		lane=${BASH_REMATCH[2]}
+		if [[ ${lane} == "L001" ]]
+			then
+			append_status=0
+		else 
+			append_status=1
+		fi
+
+		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${indices} ${experiment_name} ${append_status} ${threads}
+
+		echo [$(date)] "Completed lane: ${lane} " >> ${log}
+	fi
+
+done
 
 
-
-
-## CELL ASSIGNMENT
-
-# To do
-# 1. Create loop and iterate through Reads (match read1 to read2)
-# 2. Run cell_assign for each separate read1 + read2 matches 
-
-#python3 cell_assign.py ${matrix_path} ${} ${}
-
-# ${experiment_name}_${group_name}
 
 ## ALIGN TO HUMAN GENOME
- #${ref_genome} ${output_path}
+ #${ref_genome} ${working_dir}
+./genome_align.sh "${working_dir}/SORTED_GROUPS/" ${ref_genome} ${indices}
+
+
+#if 
+
+## BAM TO BIGWIG CONVERSION
+./bam_to_bigwig.sh "${working_dir}/SORTED_GROUPS/"
 
 ## TIDYING OUTPUT (output desired formats, clean temp files)
+
+
+echo [$(date)] "Completed pipeline for: ${experiment_name} " >> ${log}
+echo "===========================================================" >> ${log}

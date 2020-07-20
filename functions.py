@@ -1,121 +1,244 @@
-# Functions used for cell_assign.py
+# Author:
+# Function: Holds functions for parse_lane.py
+# Version: 1.8
 
-import sys
-import collections
 import os
+import re
+import sys
 import time
 import csv
-import mmap
+import datetime
+import threading
+import subprocess
+import collections
 from itertools import islice
+from Bio import SeqIO
 
-# Global variable limiter (change to false to get full output) for cell_assign.py
-limiter = True
-limiter_val = 200000
+############################################################################
+################################ Classes ###################################
+############################################################################
+
+# Thread used for cell_assign for now
+class myThread (threading.Thread):
+	def __init__(self, threadID, name, read_two_file, barcode_matrix, r_one_coordinates_dict, dir_name, indices_list, file_dic):
+		threading.Thread.__init__(self)
+		self.threadID = threadID
+		self.name = name
+		self.read_two_file = read_two_file
+		self.barcode_matrix = barcode_matrix
+		self.r_one_coordinates_dict = r_one_coordinates_dict
+		self.dir_name = dir_name
+		self.indices_list = indices_list
+		self.file_dic = file_dic
+
+	def run(self):
+		create_sorted_fastq_file(self.read_two_file, self.barcode_matrix, self.r_one_coordinates_dict, self.dir_name, self.indices_list, self.file_dic)
 
 ############################################################################
 ################################ FUNCTIONS #################################
 ############################################################################
 
-# Read lines of file (need this for progress bar) (can choose to not run for speed?)
-def mapcount (filename):
-    f = open(filename, "r+")
-    buf = mmap.mmap(f.fileno(), 0)
-    lines = 0
-    readline = buf.readline
-
-    while readline():
-        lines += 1
-
-    return lines
-
-# Progress bar stolen from stack overflow
-# Print iterations progress
-def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        length      - Optional  : character length of bar (Int)
-        fill        - Optional  : bar fill character (Str)
-        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
-    """
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
-    # Print New Line on Complete
-    if iteration == total: 
-        print("\n\n")
-
 # Creates a fastq file with sequences that match read1 coordinates and are in sorted groups based on the target
-# PS REMOVE COUNT IN FINAL VERSION, only using now to limit output because output takes too long
-def create_sorted_fastq_file (read_two_file, barcode_matrix, read1_coordinates_barcodes, dir_name):
+def create_sorted_fastq_file (read_two_file, barcode_matrix, r_one_coordinates_dict, dir_name, indices_list, file_dic):
+	""" Parameters:
+			read_two_file          = the read2 file (R2)
+			barcode_matrix         = the barcode_matrix created by read_csv
+			r_one_coordinates_dict = the dictionary where {coordinate; barcode} made from R1
+			dir_name               = the output directory
+			indices_list           = list of indices that should exist
+		Description: 
+			Changed from previous version, now reads with BioPython and writes records each time
+			whereas previous version wrote one line at a time. Theoretically should be faster.
+			Also multithreading with one line writes per time, kind of can give a problem
+			where you get random lines appending instead of the correct 4 lines each time.
+			E.g. thread1 appends header to the same file while thread2 appends quality score to 
+			the same file.
+		Ideas:
+	"""
+	coordinates = ''
+	files_to_close = set()
 
-	# read2 lines = 1013795888
-	# can remove progress bar for speed as requires line count of file (which takes a WHILE to do)
-	# change num_lines to num_lines = mapcount(read_two_file) 
-	# otherwise if another function runs through read2 get line count off them
-
-	file = open(read_two_file)
-	count = 0
-	num_lines = 200000
-
-	# Prints progress bar for cell_assign main function
-	print("")
-	printProgressBar(0, num_lines, prefix = 'Cell Assignment Progress:', suffix = 'Complete', length = 50)
-
-	with file:
-		for line in file:
-			# if it's not a header must be a sequence/quality/+  
-			# if the coordinate exists in read1, then it will proceed to write the other 2 lines to the file.
-			if line[0] != "@":
-				if new_header == True:
-					sequence = line
-					# GET TARGET/GROUP then write a fastq file with read2 data into group/directory
-					if coordinates in read1_coordinates_barcodes:
-						if read1_coordinates_barcodes[coordinates] in barcode_matrix.keys():
-							group_name = barcode_matrix[read1_coordinates_barcodes[coordinates]]
-							# If file and directory doesnt exist then creates it
-							if os.path.isdir("{}/{}".format(dir_name, group_name)) == False:
-								os.makedirs("{}/{}".format(dir_name, group_name))
-								# Creates fastq file for respective group (can probably delete if statement?)
-								target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
-								f = open(target_file, "w")
-								f.write("{}{}".format(header, sequence))
-								f.close()
-								
-							# If output/(group) exists then append to it
-							else:
-								# if errors then add if else "if os.path.isfile("{}/{}/{}.fastq".format(dir_name, group_name, group_name)) == True:"
-								# Assumes since directory exists then file must too, so append for speed
-								target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
-								f = open(target_file, "a")
-								f.write("{}{}".format(header, sequence))
-								f.close()
-
-							new_header = False
-				else:
-					# If the files have incorrect input change group_name below to 'barcode_matrix[read1_coordinates_barcodes[coordinates]]'
-					target_file = ("{}/{}/{}.fastq".format(dir_name, group_name, group_name))
-					f = open(target_file, "a")
-					f.write("{}".format(line))
-					f.close()
-
-			# Else the line must be the header
-			else:
-				header = line
-				coordinates = ':'.join(line.split(':')[4:6])
-				new_header = True
-
-			printProgressBar(count + 1, num_lines, prefix = 'Cell Assignment Progress:', suffix = 'Complete', length = 50)
-			count += 1
-			if count == limiter_val and limiter == True:
-				break
+	# Experimental Biopython writing (need this for true asynchronous writing)
+	seq_files = SeqIO.parse(read_two_file, "fastq")
+	for record in seq_files:
+		coordinates = ':'.join(record.name.split(':')[4:6])
+		read_two_indice = record.description.split(':')[9].rstrip()
+		# If R2 coordinate doesnt exist or R2 indice doesnt exist in the dictionary then skip for speed
+		if coordinates not in r_one_coordinates_dict.keys() or read_two_indice not in indices_list:
+			continue
+		# Else record can be matched to read one and R2 indice exists
+		elif coordinates in r_one_coordinates_dict.keys() and read_two_indice in indices_list:
+			group_name = barcode_matrix[r_one_coordinates_dict[coordinates]]
+			target_file = ("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, read_two_indice))
+			file_dic[target_file].write("{}".format(record.format("fastq")))
+			files_to_close.add(file_dic[target_file])
 	pass
+	
+# Combines create_fastq_files and coordinates_barcodes_dictionary
+def create_coordinates_barcodes_dictionary (read_one, barcode_matrix, desired_barcodes, indices_list):
+	read_one_dic = {}
+	#header = ''
+	coordinates = ''
+	read_one_file = open(read_one, 'r')
+	#error_read_one_file = open(read_one + '.error' , 'a+')
+	line_count = 0
+
+	for i, line in enumerate(read_one_file, 1):
+
+		# check line if it is header
+		if line[0] == "@":
+			line_indice = ''.join(line.split(':')[9]).rstrip()
+			
+			# faster if this happens so maybe we should have a flag to turn it on and off?
+			if line_indice not in indices_list:
+				consume(read_one_file, 3)
+				line_count += 3
+				#error_read_one_file.write(line)
+				continue
+			
+			coordinates = ':'.join(line.split(':')[4:6])
+			#header = line
+			
+		# if it's not a header must be a sequence/+/quality
+		else:
+			# barcode is first 16 bp
+			barcode = ''.join(line[0:16])
+			if barcode in barcode_matrix.keys():
+
+			# if it is a desired barcode, match it to read two
+			#if barcode in desired_barcodes.keys():
+				#if line_indice in indices_list:
+				#error_read_one_file.write(header)
+				read_one_dic[coordinates] = barcode 
+				#else:
+					#error_read_one_file.write(header)
+					#error_read_one_file.write(line)
+			#else:
+				#error_read_one_file.write(header)
+				#pass
+
+		if not i % 2:
+			consume(read_one_file, 2)
+			line_count += 2
+
+	#error_read_one_file.close()
+	read_one_file.close()
+
+	return read_one_dic, line_count+i
+
+
+# Creates target directories
+def create_target_directory (output_directory, append):
+
+	# Creates the directory for the sorted groups to go into
+	try:
+		os.makedirs(output_directory)
+	# Will append groups 
+	except:
+		if append == True:
+			pass
+		else:
+			try:
+				os.system("rm -r {}".format(output_directory))
+			except:
+				pass
+
+	return output_directory
+
+# Creates a list given indices as input (assumes file is similar format to symlinks/Indices_A1.txt)
+def create_indices_list (indices_file):
+	indice_list = []
+	file = open(indices_file)
+	with file:
+		for indice in file:
+			indice_list.append(indice.rstrip())
+	file.close()
+	return indice_list
+
+# Creates fastq files and passes a dictionary {filename: file_handle}
+def create_fastq_files (dir_name, indices_list, barcode_matrix):
+	"""
+		Parameters:
+		Description:
+			Returns a dictionary which is passed to the threads so we dont
+			exceed the file open limit and we truly achieve synchronised writing
+	"""
+	unique_barcodes = set()
+	file_dictionary = {}
+
+	for val in barcode_matrix.values():
+		unique_barcodes.add(val)
+
+	for group_name in unique_barcodes:
+		try:
+			os.makedirs("{}/{}".format(dir_name, group_name))
+		except:
+			# Folders have already been made
+			pass
+		finally:
+			for indice in indices_list:
+				file = open("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, indice), "a")
+				file_dictionary[("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, indice))] = file
+
+	return file_dictionary
+	#close_all_files (files_to_close)
+
+# Creates and run N threads (remove file_dic if your thing broke)
+def create_threads (split_files, barcode_matrix, r_one_coordinates_dict, dir_name, indices_list, file_dic):
+	""" Parameters:
+			split_files            = list of split files
+			barcode_matrix         = dictionary of {barcode: target}
+			r_one_coordinates_dict = dictionary of R1 {coord: barcode}
+			dir_name 			   = directory of output path 
+			indices_list           = list of indices 
+		Description:
+			Makes threads based on number of split files and starts them,
+			Also joins them so we don't get premature output
+	"""
+	threads = []
+	for i in range(0, len(split_files)):
+		threads.append(i)
+		threads[i] = myThread(("{}".format(i+1)), ("Thread {}".format(i+1)), split_files[i], barcode_matrix, r_one_coordinates_dict, dir_name, indices_list, file_dic)
+		threads[i].start()
+	for i in range(0, len(threads)):
+		threads[i].join()
+	pass
+
+# Splits Read 2 file and returns list of split files (splits to current directory for now) 
+def split_read_two (read_two_file, line_count, thread_numbers, shortcut):
+	""" Parameters:
+			read_two_file  = The R2 file
+			line_count     = Number of lines from R1 as (R1 lines = R2 lines)
+			thread_numbers = Number of files to be split into (num threads = num of split files)
+			shortcut       = directory of already split files, only for testing, used to avoid running split 
+		Description:
+			Read 1 lines = Read 2 lines as they are paired reads 
+			Probably delete the split directory(s) after in release, 
+			for now just keep files so we save ~30 minutes splitting
+	"""
+	split_files = []
+
+	# SHORTCUT 
+	if shortcut:
+		for item in os.listdir(shortcut):
+			split_files.append("{}/{}".format(shortcut, item))
+		return split_files
+	else:
+		lines_per_file = (line_count/thread_numbers)
+		while lines_per_file%4 != 0:
+			lines_per_file += 2
+		
+		# in current dir because this is deleted after 
+		try:
+			os.makedirs("tmp_split")
+		except:
+			pass
+
+		os.system("split -l{} {} tmp_split/split_".format(int(lines_per_file), read_two_file))
+		for split_file in os.listdir("tmp_split"):
+			split_files.append("{}/{}".format("tmp_split", split_file))
+
+	return split_files, "tmp_split"
 
 # Reads matrix csv and returns a data structure (dictionary) for O(1) access time
 def read_matrix (csv_matrix):
@@ -123,94 +246,68 @@ def read_matrix (csv_matrix):
 
 	# Reads cell barcode matrix and saves only: barcode + target into dictionary
 	with open(csv_matrix, 'r') as file:
-	    reader = csv.reader(file)
-	    skip_first = True
-	    for row in reader:
-			# Skips first row because there is no data in the first row
-	    	if skip_first == True: 
-	    		skip_first = False
-	    		continue
-    		else:
-		        barcode_dictionary[row[1].rstrip()] = row[5]
+		reader = csv.reader(file)
+		skip_first = True
+		for row in reader:
+			# Skips first row because there is no data in the first row (only for csv files)
+			if skip_first == True and csv_matrix[-4:] == ".csv": 
+				skip_first = False
+				continue
+			else:
+				# example: barcode_dictionary[CATACAGAGCACTCGC] = neg4
+				try:
+					barcode_dictionary[row[1].rstrip()] = row[5]
+				# repurposing to handle creating a dictionary from a plain text file
+				except:
+					barcode_dictionary[row[0].rstrip()] = 1
 
 	return barcode_dictionary
 
-# Creates target/group directories
-def create_target_directory (barcode_table, read_two):
-	read_two = read_two.split("/")[-1:]
-	read_two = read_two[0].split("L")[:-1]
-	dir1 = ("{}SORTED_GROUPS".format(read_two[0]))
+# Closes all fastq files at the end 
+def close_all_files (files_set):
+	for file in files_set:
+		file.close()
+	pass
 
-	# Creates the directory for the sorted groups to go into
-	try:
-		os.makedirs(dir1)
-	except: #If excepts then the directory already exists 
-		command = input("The directory output '{}' already exists, would you like to append to it? (Y/N) (Default will rewrite the directory) ".format(dir1))
-		# Appends to current directory
-		if command.lower() == "y" or command.lower() == "yes":
-			pass
-		# Rewrites the directory with new output
-		else:
-			os.system("rm -r {}".format(dir1))
-		pass
+# Append to a dictionary to be read in by other python script
+def write_out_dictionary_csv (table, dictionary_path):
+	writer = csv.writer(open(dictionary_path, "a+"))
+	for key, val in table.items():
+		writer.writerow([key, val])
 
-	return dir1
 
-# Make a dictionary of read1 where {barcode: coordinate} (USED FOR CELL_ASSIGN.PY)
-# REMOVE COUNT IN FINAL VERSION
-def coordinates_barcodes_dictionary (read1_file):
+def write_to_log (start_time, log_path, message):
+	log_file = open(log_path, "a+")
+	log_file.write(str(datetime.datetime.now()))
+	run_time = str(datetime.timedelta(seconds=time.time() - start_time))
+	log_file.write("\nRuntime = {} h/m/s.\n".format(run_time))
+	log_file.write(message +"\n")
+	log_file.write("---------------------------------------------\n")
+	log_file.close()
 
-	# read1_numlines = 1013795888 (same as read2 apparently?) (half actually because we only rad barcode + coord) 506897944
-	# Multi progress bars not implemented yet
-	read1_dictionary = {}
-	file = open(read1_file)
-	count = 0
-	#read1_num_lines = limiter_val
-
-	# comment after
-	#printProgressBar(0, read1_num_lines, prefix = 'Cell Assignment Progress 1/2 - reading R1:', suffix = 'Complete', length = 50)
-
-	# Goes through read1 and saves barcode + coordinate into a dictionary for O(1)
-	with file:
-		for i, line in enumerate(file, 1):
-			
-			# check line if it is header, save to maybe print later
-			if line[0] == "@":
-				coordinates = ':'.join(line.split(':')[4:6])
-
-			# if it's not a header must be a sequence
-			else:
-				# barcode is first 16 bp
-				barcode = ''.join(line[0:16])
-				read1_dictionary[coordinates] = barcode
-				
-			# will skip lines 3 and 4 for performance
-			if not i % 2:
-				consume(file, 2)
-
-			#printProgressBar(count + 1, read1_num_lines, prefix = 'Cell Assignment Progress 1/2 - reading R1:', suffix = 'Complete', length = 50)
-			count += 1
-			if count == limiter_val and limiter == True:
-				break
-
-	return read1_dictionary
-
-# stolen from chelsea
+# This will allow iterating through the only header and sequence lines
+# to improve performance
+# Function taken from the Python Package Index:
+# https://docs.python.org/3/library/itertools.html#itertools-recipes
 def consume(iterator, n=None):
-    "Advance the iterator n-steps ahead. If n is None, consume entirely."
-    # Use functions that consume iterators at C speed.
-    if n is None:
-        # feed the entire iterator into a zero-length deque
-        collections.deque(iterator, maxlen=0)
-    else:
-        # advance to the empty slice starting at position n
-        next(islice(iterator, n, n), None)
+	"Advance the iterator n-steps ahead. If n is None, consume entirely."
+	# Use functions that consume iterators at C speed.
+	if n is None:
+		# feed the entire iterator into a zero-length deque
+		collections.deque(iterator, maxlen=0)
+	else:
+		# advance to the empty slice starting at position n
+		next(islice(iterator, n, n), None)
+
+# Count number of lines in file QUICKLY 
+def count_lines(filename):
+	return int(subprocess.check_output(['wc', '-l', filename]).split()[0])
 
 # ERROR CHECKING for cell_assign.py
-def error_check (csv_matrix, read1, read2):
+def error_check (csv_matrix, read1, read2, indices):
 	# (1): Exit if arguments not 4 (invalid)
-	if len(sys.argv) != 4:
-		print("\nInsufficient arguments entered. Input must have: barcode.csv, read1 and read2.\nExiting...\n")
+	if len(sys.argv) != 5:
+		print("\nInsufficient arguments entered. Input must have: barcode.csv, read1, read2 and indices.\nExiting...\n")
 		exit()
 	# (2): Exit if the first input is not a csv file (invalid)
 	if csv_matrix[-4:] != ".csv":

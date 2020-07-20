@@ -14,5 +14,10 @@ cd /Volumes/Data1/PROJECTS/CROPseq/Pilot/hnPCR/iSeq_Script.txt
 The original source is https://github.com/shendurelab/single-cell-ko-screens
 TruSeq Read 1 is used to sequence 16 bp 10x Barcodes and 12 bp UMI
 
-# Part A: Parse fastq files and sort into respective groups/targets based on barcodes
-Files used - functions.py, cell_assign.py, parse_fastq.py
+# Useful Facts
+Reading through R1 to create dictionary takes 30 minutes
+Splitting R2 takes 30-40 minutes
+
+# To do 
+Try to integrate line count somewhere instead of calling it so we can save
+30 minutes of runtime

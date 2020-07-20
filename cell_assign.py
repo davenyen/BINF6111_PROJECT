@@ -1,38 +1,37 @@
 # Author: David Nguyen
 # Function: Assigns cells to groups/targets
+# Version: 1.5
 
 import sys
 import os
 import time
 import datetime
-from functions import read_matrix, create_target_directory, create_sorted_fastq_file, coordinates_barcodes_dictionary, error_check, printProgressBar
-
-# NEED TO UPDATE TO READ MULTIPLE READS OF SAME EXPERIMENT!
-
-# CHANGE LIMITER TO FALSE FROM FUNCTIONS.PY FOR FULL OUTPUT (ATM LIMITED TO 200,000)
-# (CURRENTLY ON REFACTOR [1] VERSION)
-# (PRE-REFACTOR) TIME TAKEN TO RUN FULL OUTPUT ON OG_READ1 AND OG_READ2 = ETA 15 hours
-# (REFACTOR [2]) TIME TAKEN TO RUN FULL OUTPUT ON OG_READ1 AND OG_READ2 = ETA 1.5 hours?
-
-# (PRE-REFACTOR) TIME TAKEN TO RUN FULL OUTPUT ON test_r1 AND test_r2 = 9.12831641 minutes
-# (REFACTOR [1]) TIME TAKEN TO RUN FULL OUTPUT ON test_r1 AND test_r2 = 0.8 minutes [avg of 5 runs]
-# (REFACTOR [2]) TIME TAKEN TO RUN FULL OUTPUT ON test_r1 AND test_r2 = 1.33 minutes [avg of 5 runs]
-
-# OPTIMISATION IDEAS: [DO 5 FOR MAXIMUM SPEED FOR SURE]
-# (1) Assume some barcodes are not in the matrix, then do [if barcode not in matrix: skip] (speeds up read1)
-# (2) Assume coordinates do not always match, then do [if coordinates not in read1: skip] (speeds up read2)
-# (3) Assume coordinates always match, then do [if read1[coordinate] barcode not in matrix: skip] (speeds up read2)
-# (4) Assume parse_fastq processes read1, get variables from that function simultaneously for speed 
-# (5) Open all fastq files for appending, and then close all of them at the end (should speed up ALOT because opening files and closing takes a lot of time)
+import threading
+from collections import Counter
+from functions import create_threads, count_lines, split_read_two, create_fastq_files, read_matrix
+from functions import create_target_directory, create_sorted_fastq_file, create_coordinates_barcodes_dictionary
+from functions import close_all_files, create_indices_list, myThread
 
 # Input: python3 cell_assign.py {matrix.csv} {read1.fastq} {read2.fastq}
 # Output: sorted_target_groups/{lots of groups}/group.fastq (for each group)
 
-# Sample run cmd line:
-# python3 cell_assign.py /Users/student/BINF6111_2020/data/test_barcode.csv /Users/student/BINF6111_2020/test/output/PilotCROP_C_1_S1_L001_R1_001.fastq /Users/student/BINF6111_2020/test/output/PilotCROP_C_1_S1_L001_R2_001.fastq
+# Full run test:
+# python3 cell_assign.py symlinks/barcode_a1.csv symlinks/PilotCROP_L1_R1.fastq symlinks/PilotCROP_L1_R2.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
+# L2:
+# python3 cell_assign.py symlinks/barcode_a1.csv symlinks/PilotCROP_L2_R1.fastq symlinks/PilotCROP_L2_R2.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
 
-# TEST RUN USE THIS:
-# python3 cell_assign.py /Users/student/BINF6111_2020/data/test_barcode.csv /Users/student/BINF6111_2020/test/output/test_L001_R1_001.fastq /Users/student/BINF6111_2020/test/output/test_L001_R2_001.fastq 
+# 100M test:
+# python3 cell_assign.py symlinks/barcode_a1.csv /Users/student/BINF6111_2020/test/100mil_test/100MILL_PilotCROP_C_1_S1_L001_R1_001.fastq /Users/student/BINF6111_2020/test/100mil_test/100MILL_PilotCROP_C_1_S1_L001_R2_001.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
+
+# 500K test:
+# python3 cell_assign.py symlinks/barcode_a1.csv /Users/student/BINF6111_2020/test/500K_test/500000_PilotCROP_C_1_S1_L001_R1_001.fastq /Users/student/BINF6111_2020/test/500K_test/500000_PilotCROP_C_1_S1_L001_R2_001.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
+# L2:
+# python3 cell_assign.py symlinks/barcode_a1.csv /Users/student/BINF6111_2020/test/500K_test/500000_PilotCROP_C_1_S1_L002_R1_001.fastq /Users/student/BINF6111_2020/test/500K_test/500000_PilotCROP_C_1_S1_L002_R2_001.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
+
+# 2k test:
+# python3 cell_assign.py symlinks/barcode_a1.csv /Users/student/BINF6111_2020/test/2000_test/2000_PilotCROP_C_1_S1_L001_R1_001.fastq /Users/student/BINF6111_2020/test/2000_test/2000_PilotCROP_C_1_S1_L001_R2_001.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
+# L2:
+# python3 cell_assign.py symlinks/barcode_a1.csv /Users/student/BINF6111_2020/test/2000_test/2000_PilotCROP_C_1_S1_L002_R1_001.fastq /Users/student/BINF6111_2020/test/2000_test/2000_PilotCROP_C_1_S1_L002_R2_001.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
 
 # Read in matrix csv
 # - Associate barcode from read one to sequence in read 2
@@ -41,28 +40,40 @@ from functions import read_matrix, create_target_directory, create_sorted_fastq_
 # - Identify cell barcode from read one, allocate sequence from read 2 to a
 # 	particular group 
 
-# TO DO
-# (1) Add into master_script 
-# (2) Toggle num_lines to read files length
-# (3) Optimise runtime 
-
 # MAIN
 if __name__ == '__main__':
 
 	# VARIABLES
 	csv_matrix = sys.argv[1]
-	read_one = sys.argv[2]
+	filtered_read_one = sys.argv[2]
 	read_two = sys.argv[3]
+	indices = sys.argv[4]
+	desired_barcodes = sys.argv[5]
 	start_time = time.time()
-	
-	# Run error checking
-	error_check (csv_matrix, read_one, read_two)
-	
+	append = True
+	split_directory = "/Users/student/BINF6111_2020/test/full_data/L1_SPLIT8/"
+	output_directory = "/Users/student/BINF6111_2020/test/full_data/D_SORTED_GROUPS"
+
+	#"/Users/student/BINF6111_2020/test/full_data/L1_R2_SPLIT_8/"
+	#"/Users/student/BINF6111_2020/test/full_data/D_Sorted_Groups/"
+
 	# Main functions
-	barcode_table = read_matrix (csv_matrix)
-	dir_name = create_target_directory (barcode_table, read_two)
-	coordinates_barcodes = coordinates_barcodes_dictionary (read_one)
-	create_sorted_fastq_file (read_two, barcode_table, coordinates_barcodes, dir_name)
+	barcode_matrix = read_matrix (csv_matrix)
+	dbc_matrix = read_matrix (desired_barcodes)
+	indices_list = create_indices_list (indices)
+	# Change append to true for Lane 2
+	dir_name = create_target_directory (output_directory, append)
+	coordinates_barcodes, line_count = create_coordinates_barcodes_dictionary (filtered_read_one, barcode_matrix, dbc_matrix, indices_list)
+	x = split_read_two (read_two, line_count, 8, split_directory)
+	file_dic = create_fastq_files (dir_name, indices_list, barcode_matrix)
+	create_threads (x, barcode_matrix, coordinates_barcodes, dir_name, indices_list, file_dic)
+	close_all_files (file_dic.values())
+
+	# Makes a log file of runtimes
+	runtime_log = os.system("touch CA_LOG.txt")
+	log_file = open("CA_LOG.txt", "a")
+	log_file.write("Runtime = {} h/m/s. Data set = {}\n".format(str(datetime.timedelta(seconds=time.time() - start_time)), dir_name))
+	log_file.close()
 
 	print("\nCELL ASSIGNMENT SUCCESSFUL")
 	print("Runtime = {} h/m/s.\n".format(str(datetime.timedelta(seconds=time.time() - start_time))))
