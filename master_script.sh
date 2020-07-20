@@ -15,12 +15,22 @@
 
 # TEST CASES
 
-# full run
+# full run A1
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
 # matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
 # desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
 # working_dir=/Users/student/BINF6111_2020/test/full_run
+
+# full run A2
+# make a new fastq so turn off those flags and allow transfer
+# write thing to combine negs all into one folder
+# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A2
+# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A2.csv
+# desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA2.txt
+# indices=/Users/student/BINF6111_2020/data/Indices_A2.txt
+# working_dir=/Users/student/BINF6111_2020/test/full_run_A2
+
 
 # sanity check test
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
@@ -28,6 +38,7 @@
 # desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
 # working_dir=/Users/student/BINF6111_2020/test/check_master_script
+# ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
 
 # 100mil
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
@@ -141,11 +152,13 @@ done
 ./genome_align.sh "${working_dir}/SORTED_GROUPS/" ${ref_genome} ${indices}
 
 
-## TIDYING OUTPUT (output desired formats, clean temp files)
 #if 
 
 ## BAM TO BIGWIG CONVERSION
 ./bam_to_bigwig.sh "${working_dir}/SORTED_GROUPS/"
+
+## TIDYING OUTPUT (output desired formats, clean temp files)
+
 
 echo [$(date)] "Completed pipeline for: ${experiment_name} " >> ${log}
 echo "===========================================================" >> ${log}
