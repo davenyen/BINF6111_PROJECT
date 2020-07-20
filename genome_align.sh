@@ -43,7 +43,7 @@ SAMTOOLS_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtool
 
 SUB_DIRECS=$(ls "$EXPERIMENT_DIREC") # get all the names of the sub-directories to go through
 
-# go through each library barcode (number of runs depends on the number of library barcodes)
+#go through each library barcode (number of runs depends on the number of library barcodes)
 for barcode in $LIB_BARCODES
 do
     READ_FILES="" # string to store a list of files that need to be read into STAR aligner
@@ -100,6 +100,8 @@ do
     done
 done
 
+rm "${EXPERIMENT_DIREC}/Aligned.sortedByCoord.out.bam" "${EXPERIMENT_DIREC}/Log.out" "${EXPERIMENT_DIREC}/Log.final.out" "${EXPERIMENT_DIREC}/Log.progress.out" "${EXPERIMENT_DIREC}/SJ.out.tab"
+
 for direc in $SUB_DIRECS
 do
     BAM_FILES=$(ls ${EXPERIMENT_DIREC}/${direc}/*.bam)
@@ -108,10 +110,10 @@ do
 done
 
 # move into loop above
-for direc in $SUB_DIRECS
-do
-    $SAMTOOLS_RUN index --threads 8 -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam"
-    $BAMCOVERAGE_RUN -p 8 -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam" -of bigwig -o "${EXPERIMENT_DIREC}/${direc}/${direc}.bw" > /dev/null 2>&1
-done
+# for direc in $SUB_DIRECS
+# do
+#     $SAMTOOLS_RUN index -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam"
+#     $BAMCOVERAGE_RUN -p 8 -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam" -of bigwig -o "${EXPERIMENT_DIREC}/${direc}/${direc}.bw" > /dev/null 2>&1
+# done
 
 #/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools view -h -o "${EXPERIMENT_DIREC}/ARPC2/out.sam" "${EXPERIMENT_DIREC}/ARPC2/Aligned.sortedByCoord.out.bam"
