@@ -10,11 +10,11 @@ EXPERIMENT_DIREC=$1
 BAMCOVERAGE_RUN="/Users/rna/anaconda2/bin/bamCoverage"
 SAMTOOLS_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools"
 
-SUB_DIRECS=$(ls -d "${EXPERIMENT_DIREC}/*/")
+SUB_DIRECS=$(ls "$EXPERIMENT_DIREC")
 
 for direc in $SUB_DIRECS
 do
     $SAMTOOLS_RUN index -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam"
-    $BAMCOVERAGE_RUN -p 4 -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam" -of bigwig -o "${EXPERIMENT_DIREC}/${direc}/${direc}.bw" > /dev/null 2>&1
+    $BAMCOVERAGE_RUN -p 8 -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam" -of bigwig -o "${EXPERIMENT_DIREC}/${direc}/${direc}.bw" > /dev/null 2>&1
 done
 
