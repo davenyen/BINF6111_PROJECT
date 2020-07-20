@@ -147,17 +147,17 @@ done
 
 
 
-## ALIGN TO HUMAN GENOME
- #${ref_genome} ${working_dir}
-./genome_align.sh "${working_dir}/SORTED_GROUPS/" ${ref_genome} ${indices}
+# ## ALIGN TO HUMAN GENOME
+#  #${ref_genome} ${working_dir}
+# ./genome_align.sh "${working_dir}/SORTED_GROUPS/" ${ref_genome} ${indices}
 
 
-#if 
+# #if 
 
-## BAM TO BIGWIG CONVERSION
-./bam_to_bigwig.sh "${working_dir}/SORTED_GROUPS/"
+# ## BAM TO BIGWIG CONVERSION
+# ./bam_to_bigwig.sh "${working_dir}/SORTED_GROUPS/"
 
-## TIDYING OUTPUT (output desired formats, clean temp files)
+# ## TIDYING OUTPUT (output desired formats, clean temp files)
 
 
 echo [$(date)] "Completed pipeline for: ${experiment_name} " >> ${log}

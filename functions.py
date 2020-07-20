@@ -130,16 +130,18 @@ def create_coordinates_barcodes_dictionary (read_one, barcode_matrix, desired_ba
 # Creates target directories
 def create_target_directory (output_directory, append):
 
+	log_path = '/'.join(output_directory.split('/')[0:6]) + "/pipeline_log.txt"
 	# Creates the directory for the sorted groups to go into
 	try:
 		os.makedirs(output_directory)
 	# Will append groups 
 	except:
 		if append == True:
-			pass
+			write_to_log (time.time(), log_path, "Appended existing SORTED_GROUPS")
 		else:
 			try:
 				os.system("rm -r {}".format(output_directory))
+				write_to_log (time.time(), log_path, "Deleted existing SORTED_GROUPS")
 			except:
 				pass
 
