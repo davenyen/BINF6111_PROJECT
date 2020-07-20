@@ -62,8 +62,8 @@ if __name__ == '__main__':
 	desired_barcodes = read_matrix (desired_barcodes)
 	group_barcode_matrix = read_matrix (csv_matrix)
 	indices_list = create_indices_list (indices_path)
-	dir_name = create_target_directory (output_dir, append_target_directory)
-	file_dictionary = create_fastq_files (dir_name, indices_list, group_barcode_matrix)
+	create_target_directory (output_dir, append_target_directory)
+	file_dictionary = create_fastq_files (output_dir, indices_list, group_barcode_matrix)
 	write_to_log (start_time, log_path, "Finished set up")
 
 	start_time = time.time()
@@ -83,7 +83,7 @@ if __name__ == '__main__':
 		# run on split files
 		write_start = time.time()
 		write_to_log (write_start, log_path, "Beginning writing out grouped fastq")
-		create_threads (split_files, group_barcode_matrix, coord_barcode_matrix, dir_name, indices_list, file_dictionary)
+		create_threads (split_files, group_barcode_matrix, coord_barcode_matrix, output_dir, indices_list, file_dictionary)
 		write_to_log (write_start, log_path, "Finished writing out grouped fastq")
 		close_all_files (file_dictionary.values())
 		os.system("rm -r {}".format(tmp_dir))
