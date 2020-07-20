@@ -5,6 +5,7 @@
 
 #####
 # This master script launches this pipeline, run with:
+# nohup disowns the process so you can exit ssh session and still run in the background using the & symbol
 # nohup ./master_script.sh ${working_dir} ${data_path} ${matrix} ${desired_barcodes} ${indices} ${ref_genome} &
 #
 
@@ -21,6 +22,8 @@
 # desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
 # working_dir=/Users/student/BINF6111_2020/test/full_run
+# ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
+
 
 # full run A2
 # make a new fastq so turn off those flags and allow transfer
@@ -30,6 +33,8 @@
 # desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA2.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A2.txt
 # working_dir=/Users/student/BINF6111_2020/test/full_run_A2
+# ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
+
 
 
 # sanity check test
@@ -40,12 +45,15 @@
 # working_dir=/Users/student/BINF6111_2020/test/check_master_script
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
 
+
 # 100mil
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
 # matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
 # desired_barcodes=/Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
 # working_dir=/Users/student/BINF6111_2020/test/100mil_test
+# ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
+
 
 # 10 million
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
@@ -53,6 +61,8 @@
 # desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
 # working_dir=/Users/student/BINF6111_2020/test/10mil_run
+# ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
+
 
 # VARIABLES
 working_dir=${1}
@@ -147,17 +157,19 @@ done
 
 
 
-# ## ALIGN TO HUMAN GENOME
-#  #${ref_genome} ${working_dir}
-# ./genome_align.sh "${working_dir}/SORTED_GROUPS/" ${ref_genome} ${indices}
+## ALIGN TO HUMAN GENOME
+ #${ref_genome} ${working_dir}
+./genome_align.sh "${working_dir}/SORTED_GROUPS/" ${ref_genome} ${indices}
+echo [$(date)] "Completed alignment " >> ${log}
 
 
-# #if 
+#if 
 
-# ## BAM TO BIGWIG CONVERSION
-# ./bam_to_bigwig.sh "${working_dir}/SORTED_GROUPS/"
+## BAM TO BIGWIG CONVERSION
+./bam_to_bigwig.sh "${working_dir}/SORTED_GROUPS/"
+echo [$(date)] "Completed bigwig conversion " >> ${log}
 
-# ## TIDYING OUTPUT (output desired formats, clean temp files)
+## TIDYING OUTPUT (output desired formats, clean temp files)
 
 
 echo [$(date)] "Completed pipeline for: ${experiment_name} " >> ${log}
