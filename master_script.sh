@@ -50,11 +50,11 @@ matrix=${3}
 desired_barcodes=${4}
 indices=${5}
 ref_genome=${6}
-log=${working_dir}/pipeline_log.txt
-# threads=0 calculate this from getopt (voluntary to change how many threads)
-# append_to_target_directory is false for L001 and true for successive lanes
+threads=8 #calculate this from getopt (voluntary to change how many threads)
+bigwig=true
 
 exist=true #just for testing purposes
+log=${working_dir}/pipeline_log.txt
 identify_experiment_name=not_exist
 file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+\.fastq(\.gz)?$'
 
@@ -138,8 +138,14 @@ done
 
 ## ALIGN TO HUMAN GENOME
  #${ref_genome} ${working_dir}
+./genome_align.sh "${working_dir}/SORTED_GROUPS/" ${ref_genome} ${indices}
+
 
 ## TIDYING OUTPUT (output desired formats, clean temp files)
+#if 
+
+## BAM TO BIGWIG CONVERSION
+./bam_to_bigwig.sh "${working_dir}/SORTED_GROUPS/"
 
 echo [$(date)] "Completed pipeline for: ${experiment_name} " >> ${log}
 echo "===========================================================" >> ${log}
