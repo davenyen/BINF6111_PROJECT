@@ -37,7 +37,7 @@
 
 
 
-# sanity check test
+# sanity check master script
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
 # matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
 # desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
@@ -49,7 +49,7 @@
 # 100mil
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
 # matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
-# desired_barcodes=/Users/student/BINF6111_2020/test/check_master_script/barcodesA1.txt
+# desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
 # working_dir=/Users/student/BINF6111_2020/test/100mil_test
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
@@ -172,5 +172,5 @@ echo [$(date)] "Completed bigwig conversion " >> ${log}
 ## TIDYING OUTPUT (output desired formats, clean temp files)
 
 
-echo [$(date)] "Completed pipeline for: ${experiment_name} " >> ${log}
+echo [$(date)] "Completed pipeline for: ${experiment_name}" >> ${log}
 echo "===========================================================" >> ${log}

@@ -105,7 +105,7 @@ def create_coordinates_barcodes_dictionary (read_one: str, barcode_matrix: dict,
 
 	# Tries to remove the previous file if it exists, then creates the error file
 	try:
-		os.system("rm {}".format(read_one+'.error'))
+		os.system("rm {}".format(read_one +'.error'))
 	except:
 		pass
 	finally:
