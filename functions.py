@@ -62,17 +62,25 @@ def create_sorted_fastq_file (read_two_file: str, barcode_matrix: dict, r_one_co
 		if line[0] != "@":
 			# if new_header is false then it is the 2 other lines != header/sequence
 			if new_header == False:
-				file_dic[target_file].write("{}".format(line))
+				if line.rstrip() == "+":
+					plus = line
+				else:
+					quality = line
+					file_dic[target_file].write("{}{}{}{}".format(header,sequence,plus,quality))
+				#file_dic[target_file].write("{}".format(line))
 			else:
 				# Sequence argument, writes to file in the file_dictionary
 				group_name = barcode_matrix[r_one_coordinates_dict[coordinates]]
 				target_file = ("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, read_two_indice))
-				file_dic[target_file].write("{}{}".format(header, line))
+				sequence = line
+				#file_dic[target_file].write("{}{}".format(header, line))
 				new_header = False
 		else:
 			header = line
 			coordinates = ':'.join(line.split(':')[4:6])
 			read_two_indice = line.split(':')[9].rstrip()
+			plus = ''
+			quality = ''
 			# If R2 coordinates or R2 indice does not exist then skip for performance
 			if coordinates not in r_one_coordinates_dict.keys() or read_two_indice not in indices_list:
 				consume(file, 3)
@@ -104,12 +112,13 @@ def create_coordinates_barcodes_dictionary (read_one: str, barcode_matrix: dict,
 	read_one_file = open(read_one, 'r')
 
 	# Tries to remove the previous file if it exists, then creates the error file
-	try:
-		os.system("rm {}".format(read_one +'.error'))
-	except:
-		pass
-	finally:
-		error_read_one_file = open(read_one + '.error' , 'a+')
+	# implemented this try catch at the start of the master_script @David, delete this if you want
+	# try:
+	# 	os.system("rm {}".format(read_one +'.error'))
+	# except:
+	# 	pass
+	# finally:
+	error_read_one_file = open(read_one + '.error' , 'a+')
 
 	for i, line in enumerate(read_one_file, 1):
 		# check line if it is header
@@ -122,7 +131,7 @@ def create_coordinates_barcodes_dictionary (read_one: str, barcode_matrix: dict,
 				error_read_one_file.write(line)
 				continue
 			coordinates = ':'.join(line.split(':')[4:6])
-			header = line
+			# header = line
 		# if it's not a header must be a sequence/+/quality
 		else:
 			barcode = ''.join(line[0:16])
@@ -136,7 +145,11 @@ def create_coordinates_barcodes_dictionary (read_one: str, barcode_matrix: dict,
 					#error_read_one_file.write(header)
 					#error_read_one_file.write(line)
 			else:
-				error_read_one_file.write(header)
+				# TODO
+				# idk why this line is here, we shouldn't be writing barcodes
+				# that don't match to an error file, should just filter them out
+				#error_read_one_file.write(header)
+				pass
 
 		if not i % 2:
 			consume(read_one_file, 2)
@@ -170,6 +183,7 @@ def create_target_directory (output_directory: str, append: bool):
 		else:
 			try:
 				os.system("rm -r {}".format(output_directory))
+				#os.makedirs(output_directory)
 				write_to_log (time.time(), log_path, "Deleted existing SORTED_GROUPS")
 			except:
 				pass
