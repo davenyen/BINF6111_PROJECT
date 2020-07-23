@@ -10,7 +10,7 @@ import threading
 from collections import Counter
 from functions import create_threads, split_read_two, create_fastq_files, read_matrix
 from functions import create_target_directory, create_sorted_fastq_file, create_coordinates_barcodes_dictionary
-from functions import close_all_files, create_indices_list, myThread
+from functions import close_all_files, create_indices_list, myThread, check_correctness
 
 # Input: python3 cell_assign.py {matrix.csv} {read1.fastq} {read2.fastq}
 # Output: sorted_target_groups/{lots of groups}/group.fastq (for each group)
@@ -24,6 +24,11 @@ from functions import close_all_files, create_indices_list, myThread
 # python3 cell_assign.py symlinks/barcode_a1.csv /Users/student/BINF6111_2020/test/100mil_test/100MILL_PilotCROP_C_1_S1_L001_R1_001.fastq /Users/student/BINF6111_2020/test/100mil_test/100MILL_PilotCROP_C_1_S1_L001_R2_001.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/data/barcodesA1.txt
 # L2:
 # python3 cell_assign.py symlinks/barcode_a1.csv /Users/student/BINF6111_2020/test/100mil_test/100MILL_PilotCROP_C_1_S1_L002_R1_001.fastq /Users/student/BINF6111_2020/test/100mil_test/100MILL_PilotCROP_C_1_S1_L002_R2_001.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/data/barcodesA1.txt
+
+# 10M test:
+# python3 cell_assign.py symlinks/barcode_a1.csv /Users/student/BINF6111_2020/test/10mil_run/10_milPilotCROP_C_1_S1_L001_R1_001.fastq /Users/student/BINF6111_2020/test/10mil_run/10_milPilotCROP_C_1_S1_L001_R2_001.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/data/barcodesA1.txt
+# L2:
+# python3 cell_assign.py symlinks/barcode_a1.csv /Users/student/BINF6111_2020/test/10mil_run/10_milPilotCROP_C_1_S1_L002_R1_001.fastq /Users/student/BINF6111_2020/test/10mil_run/10_milPilotCROP_C_1_S1_L002_R2_001.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/data/barcodesA1.txt
 
 # 500K test:
 # python3 cell_assign.py symlinks/barcode_a1.csv /Users/student/BINF6111_2020/test/500K_test/500000_PilotCROP_C_1_S1_L001_R1_001.fastq /Users/student/BINF6111_2020/test/500K_test/500000_PilotCROP_C_1_S1_L001_R2_001.fastq symlinks/Indices_A1.txt /Users/student/BINF6111_2020/data/barcodesA1.txt
@@ -52,12 +57,20 @@ if __name__ == '__main__':
 	indices = sys.argv[4]
 	desired_barcodes = sys.argv[5]
 	start_time = time.time()
-	append = False
-	split_directory = "/Users/student/BINF6111_2020/test/100mil_test/100M_L1_R2"
-	output_directory = "/Users/student/BINF6111_2020/test/100mil_test/D_SORTED_GROUPS"
+	append = True
+	split_directory = "/Users/student/BINF6111_2020/test/10mil_run/SPLIT_L2"
+	output_directory = "/Users/student/BINF6111_2020/test/10mil_run/D_SORT"
 
 	#"/Users/student/BINF6111_2020/test/full_data/L1_R2_SPLIT_8/"
 	#"/Users/student/BINF6111_2020/test/full_data/D_Sorted_Groups/"
+
+	#correct_file = create_indices_list("/Users/student/BINF6111_2020/test/10mil_run/CORRECT_HEADERS")
+	#incorrect_file = create_indices_list("/Users/student/BINF6111_2020/test/10mil_run/L1_ERRORS")
+	#if check_correctness ("/Users/student/BINF6111_2020/test/10mil_run/CORRECT_SORT", correct_file) == False:
+	#	print("Failed")
+	#else:
+		#print("Success")
+	#exit()
 
 	# Main functions
 	barcode_matrix = read_matrix (csv_matrix)
@@ -65,6 +78,7 @@ if __name__ == '__main__':
 	indices_list = create_indices_list (indices)
 	# Change append to true for Lane 2
 	create_target_directory (output_directory, append)
+	
 	coordinates_barcodes, line_count = create_coordinates_barcodes_dictionary (filtered_read_one, barcode_matrix, dbc_matrix, indices_list)
 	x = split_read_two (read_two, line_count, 8, split_directory)
 	file_dic = create_fastq_files (output_directory, indices_list, barcode_matrix)

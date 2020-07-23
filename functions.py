@@ -67,17 +67,18 @@ def create_sorted_fastq_file (read_two_file: str, barcode_matrix: dict, r_one_co
 				else:
 					quality = line
 					file_dic[target_file].write("{}{}{}{}".format(header,sequence,plus,quality))
-				#file_dic[target_file].write("{}".format(line))
 			else:
 				# Sequence argument, writes to file in the file_dictionary
 				group_name = barcode_matrix[r_one_coordinates_dict[coordinates]]
-				target_file = ("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, read_two_indice))
+				poss_neg_group = group_name
+				if group_name[0:3] == "neg":
+					poss_neg_group = group_name[0:3]
+				target_file = ("{}/{}/{}_{}.fastq".format(dir_name, poss_neg_group, group_name, read_two_indice))
 				sequence = line
-				#file_dic[target_file].write("{}{}".format(header, line))
 				new_header = False
 		else:
 			header = line
-			coordinates = ':'.join(line.split(':')[4:6])
+			coordinates = (':'.join(line.split(':')[4:7])).split(' ')[0:1][0]
 			read_two_indice = line.split(':')[9].rstrip()
 			plus = ''
 			quality = ''
@@ -103,22 +104,11 @@ def create_coordinates_barcodes_dictionary (read_one: str, barcode_matrix: dict,
 			read_one_file    = open read-one files 
 		Description:
 		Important:
-			prefer to keep the consume3 for speed otherwise see if we
-			can compromise
-			currently only writes the error headers
 	"""
 	read_one_dic = {}
 	line_count = 0
 	read_one_file = open(read_one, 'r')
-
-	# Tries to remove the previous file if it exists, then creates the error file
-	# implemented this try catch at the start of the master_script @David, delete this if you want
-	# try:
-	# 	os.system("rm {}".format(read_one +'.error'))
-	# except:
-	# 	pass
-	# finally:
-	error_read_one_file = open(read_one + '.error' , 'a+')
+	#error_read_one_file = open(read_one + '.error', 'a')
 
 	for i, line in enumerate(read_one_file, 1):
 		# check line if it is header
@@ -128,35 +118,28 @@ def create_coordinates_barcodes_dictionary (read_one: str, barcode_matrix: dict,
 			if line_indice not in indices_list:
 				consume(read_one_file, 3)
 				line_count += 3
-				error_read_one_file.write(line)
+				#error_read_one_file.write(line.rstrip() + ':UNKNOWN_INDICE\n')
 				continue
-			coordinates = ':'.join(line.split(':')[4:6])
-			# header = line
+			coordinates = (':'.join(line.split(':')[4:7])).split(' ')[0:1][0]
+			header = line
 		# if it's not a header must be a sequence/+/quality
 		else:
 			barcode = ''.join(line[0:16])
 			if barcode in barcode_matrix.keys():
 			# if it is a desired barcode, match it to read two
-			#if barcode in desired_barcodes.keys():
-				#if line_indice in indices_list:
-				#error_read_one_file.write(header)
+				#if barcode in desired_barcodes.keys():
 				read_one_dic[coordinates] = barcode 
-				#else:
-					#error_read_one_file.write(header)
-					#error_read_one_file.write(line)
-			else:
-				# TODO
-				# idk why this line is here, we shouldn't be writing barcodes
-				# that don't match to an error file, should just filter them out
-				#error_read_one_file.write(header)
-				pass
+				#error_read_one_file.write(header.rstrip() + ':CORRECT_BARCODE\n')
+			#else:
+				#error_read_one_file.write(header.rstrip() + ':UNKNOWN_BARCODE\n')
 
 		if not i % 2:
 			consume(read_one_file, 2)
 			line_count += 2
 
-	error_read_one_file.close()
+	#error_read_one_file.close()
 	read_one_file.close()
+	#print("Dict len = {}, Correct len = {}".format(len(read_one_dic), correct_count))
 
 	return read_one_dic, line_count+i
 
@@ -183,7 +166,7 @@ def create_target_directory (output_directory: str, append: bool):
 		else:
 			try:
 				os.system("rm -r {}".format(output_directory))
-				#os.makedirs(output_directory)
+				os.makedirs(output_directory)
 				write_to_log (time.time(), log_path, "Deleted existing SORTED_GROUPS")
 			except:
 				pass
@@ -197,6 +180,8 @@ def create_indices_list (indices_file: str) -> list:
 		# Appends each indice into a list
 		for indice in file:
 			indice_list.append(indice.rstrip())
+			# testing, appending coordinates only, delete after
+			#indice_list.append((':'.join(indice.split(':')[4:7])).split(' ')[0:1][0])
 	file.close()
 	return indice_list
 
@@ -222,14 +207,17 @@ def create_fastq_files (dir_name: str, indices_list: list, barcode_matrix: dict)
 		unique_groups.add(val)
 
 	for group_name in unique_groups:
+		group_name_one = group_name
 		try:
-			os.makedirs("{}/{}".format(dir_name, group_name))
+			if group_name[0:3] == "neg":
+				group_name_one = group_name[0:3]
+			os.makedirs("{}/{}".format(dir_name, group_name_one))
 		except:
 			pass
 		finally:
 			for indice in indices_list:
-				file = open("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, indice), "a")
-				file_dictionary[("{}/{}/{}_{}.fastq".format(dir_name, group_name, group_name, indice))] = file
+				file = open("{}/{}/{}_{}.fastq".format(dir_name, group_name_one, group_name, indice), "a")
+				file_dictionary[("{}/{}/{}_{}.fastq".format(dir_name, group_name_one, group_name, indice))] = file
 
 	return file_dictionary
 
@@ -283,7 +271,6 @@ def split_read_two (read_two_file: str, line_count: int, thread_numbers: int, sh
 		lines_per_file = (line_count/thread_numbers)
 		while lines_per_file%4 != 0:
 			lines_per_file += 2
-		
 		# Temporary directory which will be deleted at the end of the program
 		try:
 			os.makedirs("tmp_split")
@@ -364,3 +351,38 @@ def consume(iterator, n=None):
 	else:
 		# advance to the empty slice starting at position n
 		next(islice(iterator, n, n), None)
+
+
+# Error Testing
+
+# Loops through directories and compares file to error/correct files
+def check_correctness (directory: str, correct_file: list) -> bool:
+	"""
+		Parameters:
+		Attributes:
+		Description:
+			Super inefficient test O(n^3)? i think xD 
+	"""
+	success = True
+	line_count = 0
+	# For each directory in group folder
+	for item in os.listdir(directory):
+		# For each file in the directory that is fastq
+		for fastq in os.listdir("{}/{}".format(directory, item)):
+			if fastq[-5:] == "fastq":
+				tmp = open(("{}/{}/{}".format(directory, item, fastq)), 'r')
+				# Loop through each file matching coordinates to correct_headers list
+				for i, line in enumerate(tmp, 1):
+					# check headers against correct-file headers
+					if line[0] == "@":
+						coordinates = (':'.join(line.split(':')[4:7])).split(' ')[0:1][0]
+						if coordinates.rstrip() not in correct_file:
+							print(line.rstrip())
+							print("error")
+							Success = False
+							exit()
+					consume(tmp, 3)
+					line_count += 3
+				line_count += i
+	print("Line count = {}".format(line_count))
+	return success
