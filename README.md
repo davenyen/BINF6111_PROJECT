@@ -10,12 +10,22 @@ To get started, download this repo and make sure you have your input files/direc
 
 To run the pipeline, enter this in your terminal
 ```
-    ./master_script.sh ${working_dir} ${data_path} ${matrix} ${desired_barcodes} ${indices} ${ref_genome}
+./master_script.sh ${working_dir} ${data_path} ${matrix} ${desired_barcodes} ${indices} ${ref_genome}
+```
+Where the files are:
+```
+Working_dir: The directory where you want the output
+Data_path: The path to the full experiment data file
+Matrix: The barcode correspondence matrix 
+Desired_barcodes: A list of desired barcodes
+Indices: A list of sample-indices or library barcodes 
+Ref_genome: The reference genome
 ```
 
 ### Prerequisites
 
 * [Python3](https://www.python.org/downloads/)
+* Star Aligner
 * Linux OS
 
 ## Running the tests
@@ -23,7 +33,7 @@ To run the pipeline, enter this in your terminal
 Testing is run via;
 
 ```
-    ./test.sh 
+./test.sh 
 ```
 
 ### Break down into end to end tests
