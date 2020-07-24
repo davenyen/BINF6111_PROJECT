@@ -1,5 +1,5 @@
 
-# Vpipe (someone change this)
+# Voineagu Pipeline
 
 This pipeline will sort a fastq file into groups based on their barcodes, indices and target/groups. It will then 
 align these sorted files to the human genome and visualise it on IGV.
@@ -14,12 +14,12 @@ To run the pipeline, enter this in your terminal
 ```
 Where the files are:
 ```
-Working_dir: The directory where you want the output
-Data_path: The path to the full experiment data file
-Matrix: The barcode correspondence matrix 
-Desired_barcodes: A list of desired barcodes
-Indices: A list of sample-indices or library barcodes 
-Ref_genome: The reference genome
+Working_dir      = The directory where you want the output
+Data_path        = The path to the full experiment data file
+Matrix           = The barcode correspondence matrix 
+Desired_barcodes = A list of desired barcodes
+Indices          = A list of sample-indices or library barcodes 
+Ref_genome       = The reference genome
 ```
 
 ### Prerequisites
