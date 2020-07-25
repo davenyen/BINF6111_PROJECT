@@ -36,7 +36,7 @@ if __name__ == '__main__':
 	## Settings (can tweak)
 	log_path = (working_dir + '/pipeline_log.txt')
 	output_dir = (working_dir + '/SORTED_GROUPS')
-	maaaaaaaaany_lines = 100000000
+	maaaaaaaaany_lines = 99999999
 
 	## Writing to log
 	message.append('read_one = ' + read_one)
@@ -49,11 +49,9 @@ if __name__ == '__main__':
 	message.append('output_dir = ' + output_dir)
 	message.append('append_target_directory = ' + str(append_target_directory))
 	message.append('num_threads = ' + str(num_threads))
-	message.append('split_shortcut_dir = ' + str(split_shortcut_dir))
 	write_to_log (start_time, log_path, '\n'.join(message))
 	message = []
 	
-
 	# MAIN FUNCTIONS
 
 	## Set up
@@ -77,7 +75,7 @@ if __name__ == '__main__':
 		# split file function, optimise on num_threads variable
 		split_start = time.time()
 		write_to_log (split_start, log_path, "Beginning file split")
-		split_files, tmp_dir = split_read_two (read_two, line_count, num_threads, split_shortcut_dir)
+		split_files, tmp_dir = split_read_two (read_two, line_count, num_threads)
 		write_to_log (split_start, log_path, "Finished file split")
 
 		# run on split files
