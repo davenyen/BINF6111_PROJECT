@@ -6,13 +6,8 @@
 #####
 # This master script launches this pipeline, run with:
 # nohup disowns the process so you can exit ssh session and still run in the background using the & symbol
-# nohup ./master_script.sh ${working_dir} ${data_path} ${matrix} ${desired_barcodes} ${indices} ${ref_genome} &
-#
-
-# TODO
-# getopts to handle argument flags 
-# error handling for arguments 
-#
+# nohup ./master_script.sh ${working_dir} ${data_path} ${matrix} ${desired_barcodes} ${indices} ${ref_genome} 2>&1 >> ${working_dir}/pipeline_log.txt &
+# 
 
 # TEST CASES
 
@@ -63,6 +58,8 @@
 # working_dir=/Users/student/BINF6111_2020/test/10mil_run
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
 
+# benchmarking
+SECONDS=0
 
 # VARIABLES
 working_dir=${1}
@@ -73,104 +70,123 @@ indices=${5}
 ref_genome=${6}
 threads=8 #calculate this from getopt (voluntary to change how many threads)
 bigwig=true
+log=${working_dir}/pipeline_log.txt
 
 exist=true #just for testing purposes
-log=${working_dir}/pipeline_log.txt
+
 identify_experiment_name=not_exist
 file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+\.fastq(\.gz)?$'
 
-# error handling inputs (LATER)
-# translate groups into cell barcodes (LATER/optional)
-# get files with the reads in them from directory
+echo "===========================================================" >> ${log}
 echo "===========================================================" >> ${log}
 echo [$(date)] "PID: $$" >> ${log}
 echo "===========================================================" >> ${log}
 
-for fastq in ${data_path}/*
-	do
-	fastq=$(basename ${fastq})
-
-	# Steps are:
-		# 1) check which read file
-		# 2) uncompress file
-		# 3) process reads using python to open file, look for cell barcodes, write reads to new_files
+# compulsory inputs exist / getopts handling
 
 
-	if ${exist}; then echo [$(date)] "Already copied and uncompresseed fastqs" >> ${log}; break; fi
+ echo [$(date)] "Completed error checking inputs" >> ${log}
 
-	# check file is a read file
-	if [[ ${fastq} =~ ${file_regex} ]]
-	then
-		file=$(basename ${fastq} .gz)
-		echo [$(date)] "Reading ${file}" >> ${log}
+
+# translate groups into cell barcodes (LATER/optional)
+
+ for fastq in ${data_path}/*
+ 	do
+ 	fastq=$(basename ${fastq})
+
+ 	# Steps are:
+ 		# 1) check which read file
+ 		# 2) uncompress file
+ 		# 3) process reads using python to open file, look for cell barcodes, write reads to new_files
+
+
+ 	if ${exist}; then echo [$(date)] "Already copied and uncompresseed fastqs" >> ${log}; break; fi
+
+ 	# check file is a read file
+ 	if [[ ${fastq} =~ ${file_regex} ]]
+ 	then
+ 		file=$(basename ${fastq} .gz)
+ 		echo [$(date)] "Reading ${file}" >> ${log}
 		
 		# rsync it over, this way is safer in case fastq is huge
-		rsync -avz ${fastq} ${working_dir}
+ 		rsync -avz ${fastq} ${working_dir}
 		
-		# uncompress file in place
-		gunzip ${working_dir}/${file}.qz
+ 		# uncompress file in place
+ 		gunzip ${working_dir}/${file}.qz
 
 		
-	# else, go to the next file
-	else  
-		echo [$(date)] "${fastq} is not a fastq file" >> ${log}
-		continue
-	fi
+ 	# else, go to the next file
+ 	else  
+ 		echo [$(date)] "${fastq} is not a fastq file" >> ${log}
+ 		continue
+ 	fi
 
-done
+ done
 
-# iterate through files in working_dir to launch parsing of each lane
-for fastq in ${working_dir}/*
-	do
+# # prepare working_dir
+ for fastq in ${working_dir}/*
+ 	do
 
-	# grab name of experiment (everything before the lane number)
-	if [[ ${identify_experiment_name} == 'not_exist' ]]
-	then
-		if [[ ${fastq} =~ ${file_regex} ]]
-		then
-			experiment_name=${BASH_REMATCH[1]}
+	if [[ ${fastq} =~ "error" ]]
+ 		then
+ 		rm ${fastq}
+ 		echo [$(date)] "Delete ${fastq} for new run" >> ${log}
+ 	fi
+
+ done
+
+
+# # iterate through files in working_dir to launch parsing of each lane
+ for fastq in ${working_dir}/*
+ 	do
+
+ 	# grab name of experiment (everything before the lane number)
+ 	if [[ ${identify_experiment_name} == 'not_exist' ]]
+ 	then
+ 		if [[ ${fastq} =~ ${file_regex} ]]
+ 		then
+ 			experiment_name=${BASH_REMATCH[1]}
 		else
-			echo [$(date)] "Error: Can't identify experiment name, will name experiment as 'sample_1'" >> ${log}
-			experiment_name='sample_1'
-		fi
+ 			echo [$(date)] "Error: Can't identify experiment name, will name experiment as 'sample_1'" >> ${log}
+ 			experiment_name='sample_1'
+ 		fi
 
-		echo [$(date)] "Running pipeline on experiment: ${experiment_name}" >> ${log}
-			identify_experiment_name=true
-	fi
+ 		echo [$(date)] "Running pipeline on experiment: ${experiment_name}" >> ${log}
+ 			identify_experiment_name=true
+ 	fi
 
-	if [[ ${fastq} =~ ${file_regex} ]] && [[ 'R1' == ${BASH_REMATCH[3]} ]] 
-	then
-		lane=${BASH_REMATCH[2]}
-		if [[ ${lane} == "L001" ]]
-			then
-			append_status=0
-		else 
-			append_status=1
-		fi
+ 	if [[ ${fastq} =~ ${file_regex} ]] && [[ 'R1' == ${BASH_REMATCH[3]} ]] 
+ 	then
+ 		lane=${BASH_REMATCH[2]}
+ 		if [[ ${lane} == "L001" ]]
+ 			then
+ 			append_status=0
+ 		else 
+ 			append_status=1
+ 		fi
 
-		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${indices} ${experiment_name} ${append_status} ${threads}
+ 		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${indices} ${experiment_name} ${append_status} ${threads}
 
-		echo [$(date)] "Completed lane: ${lane} " >> ${log}
-	fi
+ 		echo [$(date)] "Completed lane: ${lane} " >> ${log}
+ 	fi
 
-done
+ done
 
-
+ echo [$(date)] "Completed fastq groups for ${experiment_name}" >> ${log}
 
 ## ALIGN TO HUMAN GENOME
  #${ref_genome} ${working_dir}
 ./genome_align.sh "${working_dir}/SORTED_GROUPS/" ${ref_genome} ${indices}
-echo [$(date)] "Completed alignment " >> ${log}
+echo [$(date)] "Completed all alignments " >> ${log}
 
-
-#if 
 
 ## BAM TO BIGWIG CONVERSION
 ./bam_to_bigwig.sh "${working_dir}/SORTED_GROUPS/"
-echo [$(date)] "Completed bigwig conversion " >> ${log}
+echo [$(date)] "Completed all bigwig conversions " >> ${log}
 
 ## TIDYING OUTPUT (output desired formats, clean temp files)
 
-
-echo [$(date)] "Completed pipeline for: ${experiment_name}" >> ${log}
+duration=${SECONDS}
+echo "$((${duration} / 3600)) hours, $(((${duration} / 60) % 60)) minutes and $((${duration} % 60)) seconds elapsed" >> ${log}
+echo [$(date)] "COMPLETED PIPELINE for: ${experiment_name}" >> ${log}
 echo "===========================================================" >> ${log}
