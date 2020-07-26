@@ -25,7 +25,6 @@ if __name__ == '__main__':
 	experiment_name = sys.argv[5]
 	append_target_directory = bool(int(sys.argv[6]))
 	num_threads = 8 # sys.argv[7]
-	split_shortcut_dir = False # sys.argv[8] ONLY FOR TESTING PURPOSES IF YOU DONT PUT A DIR HERE IT WILL SPLIT
 	
 	## Derived
 	working_dir = os.path.dirname(read_one)

@@ -72,7 +72,7 @@ threads=8 #calculate this from getopt (voluntary to change how many threads)
 bigwig=true
 log=${working_dir}/pipeline_log.txt
 
-exist=true #just for testing purposes
+exist=True #just for testing purposes
 
 identify_experiment_name=not_exist
 file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+\.fastq(\.gz)?$'
@@ -93,14 +93,14 @@ echo "===========================================================" >> ${log}
  for fastq in ${data_path}/*
  	do
  	fastq=$(basename ${fastq})
-
+	
  	# Steps are:
  		# 1) check which read file
  		# 2) uncompress file
  		# 3) process reads using python to open file, look for cell barcodes, write reads to new_files
 
 
- 	if ${exist}; then echo [$(date)] "Already copied and uncompresseed fastqs" >> ${log}; break; fi
+ 	#if ${exist}; then echo [$(date)] "Already copied and uncompresseed fastqs" >> ${log}; break; fi
 
  	# check file is a read file
  	if [[ ${fastq} =~ ${file_regex} ]]
