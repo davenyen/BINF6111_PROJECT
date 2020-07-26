@@ -15,6 +15,6 @@ SUB_DIRECS=$(ls "$EXPERIMENT_DIREC")
 for direc in $SUB_DIRECS
 do
     $SAMTOOLS_RUN index -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam"
-    $BAMCOVERAGE_RUN -p 8 -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam" -of bigwig -o "${EXPERIMENT_DIREC}/${direc}/${direc}.bw" > /dev/null 2>&1
+    $BAMCOVERAGE_RUN --normalizeUsing CPM -p 8 -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam" -of bigwig -o "${EXPERIMENT_DIREC}/${direc}/${direc}.bw" > /dev/null 2>&1
 done
 
