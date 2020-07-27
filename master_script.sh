@@ -20,7 +20,7 @@
 # matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
 # desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
-# working_dir=/Users/student/BINF6111_2020/test/full_run
+# working_dir=/Users/student/BINF6111_2020/test/full_run_A1
 
 # full run A2
 # make a new fastq so turn off those flags and allow transfer
@@ -83,101 +83,101 @@ done
 
 # error handling inputs (LATER)
 # translate groups into cell barcodes (LATER/optional)
-# get files with the reads in them from directory
-# echo "===========================================================" >> ${log}
-# echo [$(date)] "PID: $$" >> ${log}
-# echo "===========================================================" >> ${log}
 
-# for fastq in ${data_path}/*
-# 	do
-# 	fastq=$(basename ${fastq})
+echo "===========================================================" >> ${log}
+echo [$(date)] "PID: $$" >> ${log}
+echo "===========================================================" >> ${log}
 
-# 	# Steps are:
-# 		# 1) check which read file
-# 		# 2) uncompress file
-# 		# 3) process reads using python to open file, look for cell barcodes, write reads to new_files
+for fastq in ${data_path}/*
+	do
+	fastq=$(basename ${fastq})
+
+	# Steps are:
+		# 1) check which read file
+		# 2) uncompress file
+		# 3) process reads using python to open file, look for cell barcodes, write reads to new_files
 
 
-# 	if ${exist}; then echo [$(date)] "Already copied and uncompresseed fastqs" >> ${log}; break; fi
+	# if ${exist}; then echo [$(date)] "Already copied and uncompresseed fastqs" >> ${log}; break; fi
 
-# 	# check file is a read file
-# 	if [[ ${fastq} =~ ${file_regex} ]]
-# 	then
-# 		file=$(basename ${fastq} .gz)
-# 		echo [$(date)] "Reading ${file}" >> ${log}
+	# check file is a read file
+	if [[ ${fastq} =~ ${file_regex} ]]
+	then
+		file=$(basename ${fastq} .gz)
+		echo [$(date)] "Reading ${file}" >> ${log}
 		
-# 		# rsync it over, this way is safer in case fastq is huge
-# 		rsync -avz ${fastq} ${working_dir}
+		# rsync it over, this way is safer in case fastq is huge
+		rsync -avz ${fastq} ${working_dir}
 		
-# 		# uncompress file in place
-# 		gunzip ${working_dir}/${file}.qz
+		# uncompress file in place
+		gunzip ${working_dir}/${file}.qz
 
 		
-# 	# else, go to the next file
-# 	else  
-# 		echo [$(date)] "${fastq} is not a fastq file" >> ${log}
-# 		continue
-# 	fi
+	# else, go to the next file
+	else  
+		echo [$(date)] "${fastq} is not a fastq file" >> ${log}
+		continue
+	fi
 
-# done
+done
 
-# # iterate through files in working_dir to launch parsing of each lane
-# for fastq in ${working_dir}/*
-# 	do
+# iterate through files in working_dir to launch parsing of each lane
+for fastq in ${working_dir}/*
+	do
 
-# 	# grab name of experiment (everything before the lane number)
-# 	if [[ ${identify_experiment_name} == 'not_exist' ]]
-# 	then
-# 		if [[ ${fastq} =~ ${file_regex} ]]
-# 		then
-# 			experiment_name=${BASH_REMATCH[1]}
-# 		else
-# 			echo [$(date)] "Error: Can't identify experiment name, will name experiment as 'sample_1'" >> ${log}
-# 			experiment_name='sample_1'
-# 		fi
+	# grab name of experiment (everything before the lane number)
+	if [[ ${identify_experiment_name} == 'not_exist' ]]
+	then
+		if [[ ${fastq} =~ ${file_regex} ]]
+		then
+			experiment_name=${BASH_REMATCH[1]}
+		else
+			echo [$(date)] "Error: Can't identify experiment name, will name experiment as 'sample_1'" >> ${log}
+			experiment_name='sample_1'
+		fi
 
-# 		echo [$(date)] "Running pipeline on experiment: ${experiment_name}" >> ${log}
-# 			identify_experiment_name=true
-# 	fi
+		echo [$(date)] "Running pipeline on experiment: ${experiment_name}" >> ${log}
+			identify_experiment_name=true
+	fi
 
-# 	if [[ ${fastq} =~ ${file_regex} ]] && [[ 'R1' == ${BASH_REMATCH[3]} ]] 
-# 	then
-# 		lane=${BASH_REMATCH[2]}
-# 		if [[ ${lane} == "L001" ]]
-# 			then
-# 			append_status=0
-# 		else 
-# 			append_status=1
-# 		fi
+	if [[ ${fastq} =~ ${file_regex} ]] && [[ 'R1' == ${BASH_REMATCH[3]} ]] 
+	then
+		lane=${BASH_REMATCH[2]}
+		if [[ ${lane} == "L001" ]]
+			then
+			append_status=0
+		else 
+			append_status=1
+		fi
 
-# 		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${indices} ${experiment_name} ${append_status} ${threads}
+		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${indices} ${experiment_name} ${append_status} ${threads}
 
-# 		echo [$(date)] "Completed lane: ${lane} " >> ${log}
-# 	fi
+		echo [$(date)] "Completed lane: ${lane} " >> ${log}
+	fi
 
-# done
-
-
-
-# ## ALIGN TO HUMAN GENOME
-#  #${ref_genome} ${working_dir}
-# ./genome_align.sh "${working_dir}/SORTED_GROUPS/" ${ref_genome} ${indices}
+done
 
 
-# #if 
 
-# ## BAM TO BIGWIG CONVERSION
-# ./bam_to_bigwig.sh "${working_dir}/SORTED_GROUPS/"
+## ALIGN TO HUMAN GENOME
+ #${ref_genome} ${working_dir}
+./genome_align.sh "${working_dir}/SORTED_GROUPS/" ${ref_genome} ${indices}
 
-# ## DELETE FASTQ FILES
+
+#if 
+
+## BAM TO BIGWIG CONVERSION
+./bam_to_bigwig.sh "${working_dir}/SORTED_GROUPS/"
+
+## DELETE FASTQ FILES
 
 if $delete_fastq
 then
 	./delete_fastq.sh "${working_dir}"
 fi
 
-# ## TIDYING OUTPUT (output desired formats, clean temp files)
+## TIDYING OUTPUT (output desired formats, clean temp files)
 
 
-# echo [$(date)] "Completed pipeline for: ${experiment_name} " >> ${log}
-# echo "===========================================================" >> ${log}
+echo [$(date)] "Completed pipeline for: ${experiment_name} " >> ${log}
+echo "===========================================================" >> ${log}
