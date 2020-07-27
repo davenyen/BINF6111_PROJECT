@@ -25,7 +25,6 @@ if __name__ == '__main__':
 	experiment_name = sys.argv[5]
 	append_target_directory = bool(int(sys.argv[6]))
 	num_threads = 8 # sys.argv[7]
-	split_shortcut_dir = False # sys.argv[8] ONLY FOR TESTING PURPOSES IF YOU DONT PUT A DIR HERE IT WILL SPLIT
 	
 	## Derived
 	working_dir = os.path.dirname(read_one)
@@ -36,7 +35,7 @@ if __name__ == '__main__':
 	## Settings (can tweak)
 	log_path = (working_dir + '/pipeline_log.txt')
 	output_dir = (working_dir + '/SORTED_GROUPS')
-	maaaaaaaaany_lines = 100000000
+	maaaaaaaaany_lines = 99999999
 
 	## Writing to log
 	message.append('read_one = ' + read_one)
@@ -49,11 +48,9 @@ if __name__ == '__main__':
 	message.append('output_dir = ' + output_dir)
 	message.append('append_target_directory = ' + str(append_target_directory))
 	message.append('num_threads = ' + str(num_threads))
-	message.append('split_shortcut_dir = ' + str(split_shortcut_dir))
 	write_to_log (start_time, log_path, '\n'.join(message))
 	message = []
 	
-
 	# MAIN FUNCTIONS
 
 	## Set up
@@ -62,8 +59,8 @@ if __name__ == '__main__':
 	desired_barcodes = read_matrix (desired_barcodes)
 	group_barcode_matrix = read_matrix (csv_matrix)
 	indices_list = create_indices_list (indices_path)
-	dir_name = create_target_directory (output_dir, append_target_directory)
-	file_dictionary = create_fastq_files (dir_name, indices_list, group_barcode_matrix)
+	create_target_directory (output_dir, append_target_directory)
+	file_dictionary = create_fastq_files (output_dir, indices_list, group_barcode_matrix)
 	write_to_log (start_time, log_path, "Finished set up")
 
 	start_time = time.time()
@@ -77,13 +74,13 @@ if __name__ == '__main__':
 		# split file function, optimise on num_threads variable
 		split_start = time.time()
 		write_to_log (split_start, log_path, "Beginning file split")
-		split_files, tmp_dir = split_read_two (read_two, line_count, num_threads, split_shortcut_dir)
+		split_files, tmp_dir = split_read_two (read_two, line_count, num_threads)
 		write_to_log (split_start, log_path, "Finished file split")
 
 		# run on split files
 		write_start = time.time()
 		write_to_log (write_start, log_path, "Beginning writing out grouped fastq")
-		create_threads (split_files, group_barcode_matrix, coord_barcode_matrix, dir_name, indices_list, file_dictionary)
+		create_threads (split_files, group_barcode_matrix, coord_barcode_matrix, output_dir, indices_list, file_dictionary)
 		write_to_log (write_start, log_path, "Finished writing out grouped fastq")
 		close_all_files (file_dictionary.values())
 		os.system("rm -r {}".format(tmp_dir))
