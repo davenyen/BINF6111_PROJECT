@@ -37,8 +37,9 @@
 # matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
 # desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
-# working_dir=/Users/student/BINF6111_2020/test/check_master_script
+# working_dir=/Users/student/BINF6111_2020/test/team_b_stuff/test_folders/
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
+# working_dir=/Users/student/BINF6111_2020/test/check_master_script
 
 # 100mil
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
@@ -55,31 +56,28 @@
 # working_dir=/Users/student/BINF6111_2020/test/10mil_run
 
 # VARIABLES
-working_dir=${1}
-data_path=${2}
-matrix=${3}
-desired_barcodes=${4}
-indices=${5}
-ref_genome=${6}
 threads=8 #calculate this from getopt (voluntary to change how many threads)
 bigwig=true
 delete_fastq=true
-echo "$delete_fastq"
 
 exist=true #just for testing purposes
 log=${working_dir}/pipeline_log.txt
 identify_experiment_name=not_exist
 file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+\.fastq(\.gz)?$'
 
-while getopts "f" name
+while getopts "w:d:m:b:i:r:f" flag
 do
-  case $name in
-    f) delete_fastq=false;;
-    #\?) echo "Invalid option: -$OPTARG" >&2 ;;
+  case $flag in
+    f) delete_fastq=false
+    w) working_dir=$OPTARG
+    d) data_path=$OPTARG
+    m) matrix=$OPTARG
+    b) desired_barcodes=$OPTARG
+    i) indices=$OPTARG
+    r) ref_genome=$OPTARG
+    \?) echo "Invalid option: -$OPTARG" >&2 ;;
   esac
 done
-echo "$delete_fastq"
-
 
 
 
