@@ -5,7 +5,7 @@
 
 #####
 # This master script launches this pipeline, run with:
-# nohup ./master_script.sh ${working_dir} ${data_path} ${matrix} ${desired_barcodes} ${indices} ${ref_genome} &
+# nohup ./master_script.sh -w ${working_dir} -d ${data_path} -m ${matrix} -b ${desired_barcodes} -i ${indices} -r ${ref_genome} &
 #
 
 # TODO
@@ -68,13 +68,13 @@ file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+\.fastq(\.gz)?$'
 while getopts "w:d:m:b:i:r:f" flag
 do
   case $flag in
-    f) delete_fastq=false
-    w) working_dir=$OPTARG
-    d) data_path=$OPTARG
-    m) matrix=$OPTARG
-    b) desired_barcodes=$OPTARG
-    i) indices=$OPTARG
-    r) ref_genome=$OPTARG
+    f) delete_fastq=false;;
+    w) working_dir=$OPTARG;;
+    d) data_path=$OPTARG;;
+    m) matrix=$OPTARG;;
+    b) desired_barcodes=$OPTARG;;
+    i) indices=$OPTARG;;
+    r) ref_genome=$OPTARG;;
     \?) echo "Invalid option: -$OPTARG" >&2 ;;
   esac
 done
