@@ -107,6 +107,7 @@ do
     BAM_FILES=$(ls ${EXPERIMENT_DIREC}/${direc}/*.bam)
     $SAMTOOLS_RUN merge --threads 8 -c "${EXPERIMENT_DIREC}/${direc}/${direc}.bam" $BAM_FILES
     rm $BAM_FILES
+    $SAMTOOLS_RUN index -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam"
 done
 
 # move into loop above
