@@ -5,7 +5,7 @@
 
 #####
 # This master script launches this pipeline, run with:
-# nohup ./master_script.sh -w ${working_dir} -d ${data_path} -m ${matrix} -b ${desired_barcodes} -i ${indices} -r ${ref_genome} &
+# nohup ./master_script.sh -w ${working_dir} -d ${data_path} -m ${matrix} -b ${desired_barcodes} -i ${indices} -r ${ref_genome} 2>&1 >> ${working_dir}/pipeline_log.txt &
 #
 
 # TODO
@@ -21,10 +21,12 @@
 # desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
 # working_dir=/Users/student/BINF6111_2020/test/full_run_A1
+# ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
 
 # full run A2
 # make a new fastq so turn off those flags and allow transfer
 # write thing to combine negs all into one folder
+
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A2
 # matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A2.csv
 # desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA2.txt
@@ -39,7 +41,7 @@
 # matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
 # desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
-# working_dir=/Users/student/BINF6111_2020/test/team_b_stuff/test_folders/
+# working_dir=/Users/student/BINF6111_2020/test/team_b_stuff/
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
 # working_dir=/Users/student/BINF6111_2020/test/check_master_script
 
@@ -64,10 +66,11 @@
 # benchmarking
 SECONDS=0
 
+# ALL THE VARIABLES SECTION NEEDS TO STAY ABOVE THE GETOPTS PLEASE
 # VARIABLES
 threads=8 #calculate this from getopt (voluntary to change how many threads)
-bigwig=true
 delete_fastq=true
+output="bambw"
 
 exist=true #just for testing purposes
 log=${working_dir}/pipeline_log.txt
@@ -77,24 +80,28 @@ exist=True #just for testing purposes
 identify_experiment_name=not_exist
 file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+\.fastq(\.gz)?$'
 
-while getopts "w:d:m:b:i:r:f" flag
+while getopts "w:d:m:b:i:r:fo:" flag
 do
   case $flag in
-    f) delete_fastq=false;;
     w) working_dir=$OPTARG;;
     d) data_path=$OPTARG;;
     m) matrix=$OPTARG;;
     b) desired_barcodes=$OPTARG;;
     i) indices=$OPTARG;;
     r) ref_genome=$OPTARG;;
+	f) delete_fastq=false;;
+	o) output=$OPTARG;;
     \?) echo "Invalid option: -$OPTARG" >&2 ;;
   esac
 done
 
-
-
-# error handling inputs (LATER)
-# translate groups into cell barcodes (LATER/optional)
+# # error handling inputs (LATER)
+if test $output != "bam" -a $output != "bigwig" -a $output != "bambw"
+then
+	echo "Invalid output specification, please use bam, bigwig or bambw as a parameter for the flag -o."
+	exit 1
+fi
+# # translate groups into cell barcodes (LATER/optional)
 
 echo "===========================================================" >> ${log}
 echo [$(date)] "PID: $$" >> ${log}
@@ -111,7 +118,6 @@ echo "===========================================================" >> ${log}
 
  for fastq in ${data_path}/*
  	do
- 	fastq=$(basename ${fastq})
 	
  	# Steps are:
  		# 1) check which read file
@@ -122,7 +128,7 @@ echo "===========================================================" >> ${log}
  	#if ${exist}; then echo [$(date)] "Already copied and uncompresseed fastqs" >> ${log}; break; fi
 
  	# check file is a read file
- 	if [[ ${fastq} =~ ${file_regex} ]]
+ 	if [[ ${fastq} =~ ${file_regex} ]] && [[ ${BASH_REMATCH[3]} =~ 'R' ]]
  	then
  		file=$(basename ${fastq} .gz)
  		echo [$(date)] "Reading ${file}" >> ${log}
@@ -131,7 +137,7 @@ echo "===========================================================" >> ${log}
  		rsync -avz ${fastq} ${working_dir}
 		
  		# uncompress file in place
- 		gunzip ${working_dir}/${file}.qz
+ 		gunzip ${working_dir}/${file}
 
 		
  	# else, go to the next file
@@ -198,16 +204,26 @@ echo "===========================================================" >> ${log}
 ./genome_align.sh "${working_dir}/SORTED_GROUPS/" ${ref_genome} ${indices}
 echo [$(date)] "Completed all alignments " >> ${log}
 
-
 ## BAM TO BIGWIG CONVERSION
-./bam_to_bigwig.sh "${working_dir}/SORTED_GROUPS/"
-echo [$(date)] "Completed all bigwig conversions " >> ${log}
+if test $output = "bigwig" -o $output = "bambw" 
+then
+	./bam_to_bigwig.sh ${working_dir}
+	echo [$(date)] "Completed all bigwig conversions " >> ${log}
+fi
+
+## DELETE BAM FILES
+if test $output = "bigwig" 
+then
+	./delete_files.sh "${working_dir}/SORTED_GROUPS/" "bam"
+
+	# check whether we need bai files for bigwig visualisation
+	#./delete_files.sh "${working_dir}/SORTED_GROUPS/" "bai"
+fi
 
 ## DELETE FASTQ FILES
-
 if $delete_fastq
 then
-	./delete_fastq.sh "${working_dir}"
+	./delete_files.sh "${working_dir}/SORTED_GROUPS/" "fastq"
 fi
 
 ## TIDYING OUTPUT (output desired formats, clean temp files)
