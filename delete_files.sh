@@ -1,9 +1,10 @@
 #!/bin/bash
 
 EXPERIMENT_DIREC=$1
+FILE_EXTENSION=$2
 SUB_DIRECS=$(ls "$EXPERIMENT_DIREC")
 
 for direc in $SUB_DIRECS
 do
-    rm ${EXPERIMENT_DIREC}/${direc}/*.fastq
+    rm ${EXPERIMENT_DIREC}/${direc}/*.${FILE_EXTENSION}
 done
