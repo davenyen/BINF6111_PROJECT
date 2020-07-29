@@ -201,7 +201,7 @@ echo "===========================================================" >> ${log}
 
 ## ALIGN TO HUMAN GENOME
  #${ref_genome} ${working_dir}
-./genome_align.sh "${working_dir}/SORTED_GROUPS/" ${ref_genome} ${indices}
+./genome_align.sh ${working_dir} ${ref_genome} ${indices}
 echo [$(date)] "Completed all alignments " >> ${log}
 
 ## BAM TO BIGWIG CONVERSION
@@ -214,8 +214,8 @@ fi
 ## DELETE BAM FILES
 if test $output = "bigwig" 
 then
-	./delete_files.sh "${working_dir}/SORTED_GROUPS/" "bam"
-
+	./delete_files.sh ${working_dir} "bam"
+	echo [$(date)] "Completed BAM intermediate files in each target cell directory " >> ${log}
 	# check whether we need bai files for bigwig visualisation
 	#./delete_files.sh "${working_dir}/SORTED_GROUPS/" "bai"
 fi
@@ -223,7 +223,8 @@ fi
 ## DELETE FASTQ FILES
 if $delete_fastq
 then
-	./delete_files.sh "${working_dir}/SORTED_GROUPS/" "fastq"
+	./delete_files.sh ${working_dir} "fastq"
+	echo [$(date)] "Completed FASTQ files in each target cell directory " >> ${log}
 fi
 
 ## TIDYING OUTPUT (output desired formats, clean temp files)

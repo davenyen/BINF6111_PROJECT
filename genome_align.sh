@@ -32,7 +32,8 @@
 
 # Reference genome "/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index"
 # Sample library indexes "../test/team_b_stuff/A1_sample_indices.txt"
-EXPERIMENT_DIREC=$1 # directory to samples is passed in as the first argument
+WORKING_DIR=$1
+EXPERIMENT_DIREC="${WORKING_DIR}/SORTED_GROUPS/" # directory to samples is passed in as the first argument
 REFERENCE_GENOME=$2 # directory to reference genome index is passed in as the second argument
 LIB_BARCODES=$(<$3) # text file containing library barcodes passed in as third argument + reads contents/stores as string
 
@@ -72,6 +73,7 @@ do
     # with the same adaptor sequence and library barcode
     # (STAR is only run depending on the number of library barcodes)
     # --outFileNamePrefix -> output BAM files into sample directory
+    echo "STAR RUN for adaptor sequence: ${barcode}" >> ${WORKING_DIR}/pipeline_log.txt
     "$STAR_RUN" --runThreadN 8 \
         --genomeDir "$REFERENCE_GENOME" \
         --readFilesIn "$READ_FILES" \
@@ -88,9 +90,11 @@ do
         --outFilterMismatchNmax 2 \
         --outFilterScoreMinOverLread 0.3 \
         --outFilterMatchNminOverLread 0.3 \
+    >> ${WORKING_DIR}/pipeline_log.txt
     
     # splits the big BAM file into the associated target cell group BAM files
-    /Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools split "${EXPERIMENT_DIREC}/Aligned.sortedByCoord.out.bam" -f "${EXPERIMENT_DIREC}/%!_${barcode}.bam"
+    /Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools split "${EXPERIMENT_DIREC}/Aligned.sortedByCoord.out.bam" -f "${EXPERIMENT_DIREC}/%!_${barcode}.bam" 
+    echo [$(date)] "Completed split BAM file into target cell groups for barcode: ${barcode}" >> ${WORKING_DIR}/pipeline_log.txt
 
     #mv [filename] [dest-dir]
     
@@ -98,17 +102,22 @@ do
     do
        mv "${EXPERIMENT_DIREC}/${direc}_${barcode}.bam" "${EXPERIMENT_DIREC}/${direc}"
     done
+    echo [$(date)] "Completed moving all BAM files into target cell directories for barcode: ${barcode}" >> ${WORKING_DIR}/pipeline_log.txt
 done
 
 rm "${EXPERIMENT_DIREC}/Aligned.sortedByCoord.out.bam" "${EXPERIMENT_DIREC}/Log.out" "${EXPERIMENT_DIREC}/Log.final.out" "${EXPERIMENT_DIREC}/Log.progress.out" "${EXPERIMENT_DIREC}/SJ.out.tab"
+echo [$(date)] "Completed deleting leftover files from STAR run" >> ${WORKING_DIR}/pipeline_log.txt
 
 for direc in $SUB_DIRECS
 do
     BAM_FILES=$(ls ${EXPERIMENT_DIREC}/${direc}/*.bam)
     $SAMTOOLS_RUN merge --threads 8 -c "${EXPERIMENT_DIREC}/${direc}/${direc}.bam" $BAM_FILES
+    echo [$(date)] "Completed merging BAM files into one big BAM: ${direc}" >> ${WORKING_DIR}/pipeline_log.txt
     rm $BAM_FILES
     $SAMTOOLS_RUN index -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam"
+    echo [$(date)] "Completed creating index file: ${direc}" >> ${WORKING_DIR}/pipeline_log.txt
 done
+
 
 # move into loop above
 # for direc in $SUB_DIRECS

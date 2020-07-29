@@ -6,7 +6,7 @@
 # --outSAMtype BAM Unsorted SortedByCoordinate
 # --outWigType wiggle
 
-WORKING_DIR = ${1}
+WORKING_DIR=$1
 EXPERIMENT_DIREC="${WORKING_DIR}/SORTED_GROUPS/"
 BAMCOVERAGE_RUN="/Users/rna/anaconda2/bin/bamCoverage"
 SAMTOOLS_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools"
