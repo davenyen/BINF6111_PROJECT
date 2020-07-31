@@ -6,7 +6,9 @@
 #####
 # This master script launches this pipeline, run with:
 # nohup ./master_script.sh -w ${working_dir} -d ${data_path} -m ${matrix} -b ${desired_barcodes} -i ${indices} -r ${ref_genome} 2>&1 >> ${working_dir}/pipeline_log.txt &
-#
+# testing (Chelsea)
+# ./master_script.sh -w ${working_dir} -d ${data_path} -m ${matrix} -b ${desired_barcodes} -i ${indices} -r ${ref_genome} -o bigwig 2>&1
+
 
 # TODO
 # getopts to handle argument flags 
@@ -63,24 +65,23 @@
 # working_dir=/Users/student/BINF6111_2020/test/10mil_run
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
 
-# benchmarking
+## BENCHMARKING AND LOGS
 SECONDS=0
-
-# ALL THE VARIABLES SECTION NEEDS TO STAY ABOVE THE GETOPTS PLEASE
-# VARIABLES
-threads=8 #calculate this from getopt (voluntary to change how many threads)
-delete_fastq=true
-output="bambw"
-
-exist=true #just for testing purposes
 log=${working_dir}/pipeline_log.txt
 
-exist=True #just for testing purposes
+# ALL THE VARIABLES SECTION NEEDS TO STAY ABOVE THE GETOPTS PLEASE
+# Default variables (if user chooses not to specify)
+threads=8 
+delete_fastq=true
+output="bambw"
+exist=false
+groups=false
 
+# To name files and paths
 identify_experiment_name=not_exist
 file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+\.fastq(\.gz)?$'
 
-while getopts "w:d:m:b:i:r:fo:" flag
+while getopts "w:d:m:b:i:r:fego:t:" flag
 do
   case $flag in
     w) working_dir=$OPTARG;;
@@ -90,42 +91,34 @@ do
     i) indices=$OPTARG;;
     r) ref_genome=$OPTARG;;
 	f) delete_fastq=false;;
+	e) exist=true;;
+	g) groups=true;;
 	o) output=$OPTARG;;
+	t) threads=$OPTARG;;
     \?) echo "Invalid option: -$OPTARG" >&2 ;;
   esac
 done
-
-# # error handling inputs (LATER)
-if test $output != "bam" -a $output != "bigwig" -a $output != "bambw"
-then
-	echo "Invalid output specification, please use bam, bigwig or bambw as a parameter for the flag -o."
-	exit 1
-fi
-# # translate groups into cell barcodes (LATER/optional)
 
 echo "===========================================================" >> ${log}
 echo [$(date)] "PID: $$" >> ${log}
 echo "===========================================================" >> ${log}
 
-# compulsory inputs exist / getopts handling
+## ERROR HANDLING INPUTS
+if test $output != "bam" -a $output != "bigwig" -a $output != "bambw"
+then
+	"Invalid output specification, please use bam, bigwig or bambw as a parameter for the flag -o." >&2
+	exit 1
+fi
+
+echo [$(date)] "Completed error checking inputs, pipeline will complete in background"
 
 
- echo [$(date)] "Completed error checking inputs" >> ${log}
 
-	# if ${exist}; then echo [$(date)] "Already copied and uncompresseed fastqs" >> ${log}; break; fi
-
-# translate groups into cell barcodes (LATER/optional)
-
+## TRANSFER AND DECOMPRESS FASTQS
  for fastq in ${data_path}/*
  	do
 	
- 	# Steps are:
- 		# 1) check which read file
- 		# 2) uncompress file
- 		# 3) process reads using python to open file, look for cell barcodes, write reads to new_files
-
-
- 	#if ${exist}; then echo [$(date)] "Already copied and uncompresseed fastqs" >> ${log}; break; fi
+ 	if ${exist}; then echo [$(date)] "Already copied and uncompresseed fastqs" >> ${log}; break; fi
 
  	# check file is a read file
  	if [[ ${fastq} =~ ${file_regex} ]] && [[ ${BASH_REMATCH[3]} =~ 'R' ]]
@@ -190,7 +183,7 @@ echo "===========================================================" >> ${log}
  			append_status=1
  		fi
 
- 		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${indices} ${experiment_name} ${append_status} ${threads}
+ 		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${groups} ${indices} ${experiment_name} ${append_status} ${threads}
 
  		echo [$(date)] "Completed lane: ${lane} " >> ${log}
  	fi
@@ -211,21 +204,27 @@ then
 	echo [$(date)] "Completed all bigwig conversions " >> ${log}
 fi
 
-## DELETE BAM FILES
+echo [$(date)] "Completed FASTQ files in each target cell directory " >> ${log}
+
+
+## DELETE AND TIDY FILES
 if test $output = "bigwig" 
 then
-	./delete_files.sh ${working_dir} "bam"
-	echo [$(date)] "Completed BAM intermediate files in each target cell directory " >> ${log}
-	# check whether we need bai files for bigwig visualisation
-	#./delete_files.sh "${working_dir}/SORTED_GROUPS/" "bai"
-fi
-
-## DELETE FASTQ FILES
-if $delete_fastq
+	file_extensions+=('.bam')
+	file_extensions+=('.bai')	
+elif test $output = "bam" 
 then
-	./delete_files.sh ${working_dir} "fastq"
-	echo [$(date)] "Completed FASTQ files in each target cell directory " >> ${log}
+	file_extensions+=('.bw')
 fi
+if ${delete_fastq}
+then
+	file_extensions+=('.fastq')
+fi
+echo ${file_extensions[@]}
+./tidy_files.sh ${file_extensions[@]} "${working_dir}/SORTED_GROUPS_test"
+echo [$(date)] "Finished tidying up outputs" >> ${log}
+
+
 
 ## TIDYING OUTPUT (output desired formats, clean temp files)
 

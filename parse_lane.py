@@ -21,10 +21,11 @@ if __name__ == '__main__':
 	read_one = sys.argv[1]
 	csv_matrix = sys.argv[2]
 	desired_barcodes = sys.argv[3]
-	indices_path = sys.argv[4]
-	experiment_name = sys.argv[5]
-	append_target_directory = bool(int(sys.argv[6]))
-	num_threads = 8 # sys.argv[7]
+	groups = bool(int(sys.argv[4]))
+	indices_path = sys.argv[5]
+	experiment_name = sys.argv[6]
+	append_target_directory = bool(int(sys.argv[7]))
+	num_threads = sys.argv[8]
 	
 	## Derived
 	working_dir = os.path.dirname(read_one)
@@ -56,11 +57,13 @@ if __name__ == '__main__':
 	## Set up
 	start_time = time.time()
 	write_to_log (start_time , log_path, "Start set up")
-	desired_barcodes = read_matrix (desired_barcodes)
 	group_barcode_matrix = read_matrix (csv_matrix)
 	indices_list = create_indices_list (indices_path)
 	create_target_directory (output_dir, append_target_directory)
 	file_dictionary = create_fastq_files (output_dir, indices_list, group_barcode_matrix)
+	desired_barcodes = read_matrix (desired_barcodes)
+	if groups:
+		pass
 	write_to_log (start_time, log_path, "Finished set up")
 
 	start_time = time.time()
