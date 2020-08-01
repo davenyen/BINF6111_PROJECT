@@ -7,11 +7,10 @@ import re
 import sys
 import time
 import datetime
-from functions import read_matrix, create_indices_list, create_coordinates_barcodes_dictionary, create_target_directory
-from functions import create_fastq_files, split_read_two, create_sorted_fastq_file, write_to_log, create_threads, close_all_files
-
-## TODO
-## Error checking will be done by master script
+from functions import read_matrix, create_indices_list, create_coordinates_barcodes_dictionary
+from functions import create_target_directory, convert_groups_to_barcodes
+from functions import create_fastq_files, split_read_two, create_sorted_fastq_file
+from functions import write_to_log, create_threads, close_all_files
 
 if __name__ == '__main__':
 
@@ -21,10 +20,10 @@ if __name__ == '__main__':
 	read_one = sys.argv[1]
 	csv_matrix = sys.argv[2]
 	desired_barcodes = sys.argv[3]
-	groups = bool(int(sys.argv[4]))
+	groups = bool(sys.argv[4])
 	indices_path = sys.argv[5]
 	experiment_name = sys.argv[6]
-	append_target_directory = bool(int(sys.argv[7]))
+	append_target_directory = bool(sys.argv[7])
 	num_threads = sys.argv[8]
 	
 	## Derived
@@ -60,10 +59,10 @@ if __name__ == '__main__':
 	group_barcode_matrix = read_matrix (csv_matrix)
 	indices_list = create_indices_list (indices_path)
 	create_target_directory (output_dir, append_target_directory)
-	file_dictionary = create_fastq_files (output_dir, indices_list, group_barcode_matrix)
 	desired_barcodes = read_matrix (desired_barcodes)
 	if groups:
-		pass
+		desired_barcodes, group_barcode_matrix = convert_groups_to_barcodes (desired_barcodes, group_barcode_matrix)
+	file_dictionary = create_fastq_files (output_dir, indices_list, group_barcode_matrix)
 	write_to_log (start_time, log_path, "Finished set up")
 
 	start_time = time.time()

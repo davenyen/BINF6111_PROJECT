@@ -297,11 +297,33 @@ def read_matrix (csv_matrix: str) -> dict:
 				# example: barcode_dictionary[CATACAGAGCACTCGC] = neg4
 				try:
 					barcode_dictionary[row[1].rstrip()] = row[5]
-				# If excepted, then means it's not a csv file
+				# If excepted, then means it's not a csv file instead read a text file
 				except:
 					barcode_dictionary[row[0].rstrip()] = 1
 
 	return barcode_dictionary
+
+# Converts a list of groups to a list of barcodes
+def convert_groups_to_barcodes (desired_barcodes: dict, group_barcode_matrix: dict) -> dict:
+	"""
+		Parameters:
+			desired_barcodes  		= currently a dictinary of group names
+			group_barcode_matrix 	= cell barcode to group correspondence matrix
+		Attributes:
+			barcode_dictionary    	= completed dictionary of barcode_dictionary[CATACAGAGCACTCGC] = 1
+		Description:
+			Handles optional function where user specifies a list of groups instead of 
+			a list of barcodes, creates dictionary of barcodes composed of that group
+	"""
+	barcode_dictionary = {}
+
+	for barcode, group in group_barcode_matrix.items():
+		if group in desired_barcodes:
+			barcode_dictionary[barcode] = group
+
+	# dictionary can function as both the desired barcodes and group_barcode_matrix
+	# in this situation, keep seperate names in parse_lane.py for legibility
+	return barcode_dictionary, barcode_dictionary
 
 # Closes all open fastq files given a file set
 def close_all_files (files_set: set):

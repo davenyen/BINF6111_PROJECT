@@ -42,7 +42,7 @@ STAR_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/STAR-2.5.2b/bin/MacOSX_x86
 BAMCOVERAGE_RUN="/Users/rna/anaconda2/bin/bamCoverage" # deepTools bamCoverage
 SAMTOOLS_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools"
 
-SUB_DIRECS=$(ls "$EXPERIMENT_DIREC") # get all the names of the sub-directories to go through
+SUB_DIRECS=$(basename `ls -d $EXPERIMENT_DIREC/*/`) # get all the names of the sub-directories to go through
 
 #go through each library barcode (number of runs depends on the number of library barcodes)
 for barcode in $LIB_BARCODES
@@ -53,6 +53,12 @@ do
     # go through each sub-directory (ie. target cell group directory) in the experiment/sample directory
     for direc in $SUB_DIRECS
     do
+        # ignore _STARtmp
+        # if [[ $direc == _STARtmp ]]
+        # then 
+        #     continue
+        # fi
+
         # append each read file corresponding with one of the four library barcodes
         # across all target cell group sub-directories into a string
         READ_FILES="${READ_FILES}${EXPERIMENT_DIREC}/${direc}/${direc}_${barcode}.fastq,"

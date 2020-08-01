@@ -7,13 +7,8 @@
 # This master script launches this pipeline, run with:
 # nohup ./master_script.sh -w ${working_dir} -d ${data_path} -m ${matrix} -b ${desired_barcodes} -i ${indices} -r ${ref_genome} 2>&1 >> ${working_dir}/pipeline_log.txt &
 # testing (Chelsea)
-# ./master_script.sh -w ${working_dir} -d ${data_path} -m ${matrix} -b ${desired_barcodes} -i ${indices} -r ${ref_genome} -o bigwig 2>&1
+# ./master_script.sh -w ${working_dir} -d ${data_path} -m ${matrix} -b ${desired_barcodes} -i ${indices} -r ${ref_genome} -o bigwig -g 2>&1
 
-
-# TODO
-# getopts to handle argument flags 
-# error handling for arguments 
-#
 
 # TEST CASES
 
@@ -26,9 +21,6 @@
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
 
 # full run A2
-# make a new fastq so turn off those flags and allow transfer
-# write thing to combine negs all into one folder
-
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A2
 # matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A2.csv
 # desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA2.txt
@@ -37,49 +29,34 @@
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
 
 
-
 # sanity check master script
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
 # matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
 # desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
-# working_dir=/Users/student/BINF6111_2020/test/team_b_stuff/
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
 # working_dir=/Users/student/BINF6111_2020/test/check_master_script
 
-
-# 100mil
+# test groups flag
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
 # matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
-# desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
+# desired_barcodes=/Users/student/BINF6111_2020/test/groups_10mil_run/some_groups_A1.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
-# working_dir=/Users/student/BINF6111_2020/test/100mil_test
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
+# working_dir=/Users/student/BINF6111_2020/test/groups_10mil_run
 
-
-# 10 million
-# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
-# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
-# desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
-# indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
-# working_dir=/Users/student/BINF6111_2020/test/10mil_run
-# ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
 
 ## BENCHMARKING AND LOGS
 SECONDS=0
-log=${working_dir}/pipeline_log.txt
 
-# ALL THE VARIABLES SECTION NEEDS TO STAY ABOVE THE GETOPTS PLEASE
+
+# DO NOT CHANGE THE ORDER OF VARIABLE DECLARATION PLEASE
 # Default variables (if user chooses not to specify)
 threads=8 
 delete_fastq=true
 output="bambw"
 exist=false
 groups=false
-
-# To name files and paths
-identify_experiment_name=not_exist
-file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+\.fastq(\.gz)?$'
 
 while getopts "w:d:m:b:i:r:fego:t:" flag
 do
@@ -98,6 +75,11 @@ do
     \?) echo "Invalid option: -$OPTARG" >&2 ;;
   esac
 done
+
+# To name files and paths
+identify_experiment_name=not_exist
+file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+\.fastq(\.gz)?$'
+log=${working_dir}/pipeline_log.txt
 
 echo "===========================================================" >> ${log}
 echo [$(date)] "PID: $$" >> ${log}
@@ -150,8 +132,13 @@ echo [$(date)] "Completed error checking inputs, pipeline will complete in backg
  		rm ${fastq}
  		echo [$(date)] "Delete ${fastq} for new run" >> ${log}
  	fi
-
  done
+
+ if [[ -d ${working_dir}/SORTED_GROUPS/ ]]
+ 	then
+	rm -r ${working_dir}/SORTED_GROUPS/
+	echo [$(date)] "Delete ${working_dir}/SORTED_GROUPS/ for new run" >> ${log}
+ fi
 
 
 # # iterate through files in working_dir to launch parsing of each lane
@@ -178,9 +165,9 @@ echo [$(date)] "Completed error checking inputs, pipeline will complete in backg
  		lane=${BASH_REMATCH[2]}
  		if [[ ${lane} == "L001" ]]
  			then
- 			append_status=0
+ 			append_status=false
  		else 
- 			append_status=1
+ 			append_status=true
  		fi
 
  		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${groups} ${indices} ${experiment_name} ${append_status} ${threads}
@@ -221,7 +208,7 @@ then
 	file_extensions+=('.fastq')
 fi
 echo ${file_extensions[@]}
-./tidy_files.sh ${file_extensions[@]} "${working_dir}/SORTED_GROUPS_test"
+./tidy_files.sh ${file_extensions[@]} "${working_dir}/SORTED_GROUPS"
 echo [$(date)] "Finished tidying up outputs" >> ${log}
 
 

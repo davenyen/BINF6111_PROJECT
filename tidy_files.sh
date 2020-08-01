@@ -6,7 +6,7 @@ EXPERIMENT_DIREC=${ARGS[0]}
 for ((i = 1 ; i < ${#ARGS[@]} ; i++))
 do
     extension=${ARGS[$i]}
-    rm ${EXPERIMENT_DIREC}/*/*${extension}
+    rm -f ${EXPERIMENT_DIREC}/*/*${extension}
 done
 
 # move everything up into "${WORKING_DIR}/SORTED_GROUPS" to enable easy ctrl 
