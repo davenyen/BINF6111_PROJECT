@@ -24,7 +24,7 @@ if __name__ == '__main__':
 	indices_path = sys.argv[5]
 	experiment_name = sys.argv[6]
 	append_target_directory = bool(sys.argv[7])
-	num_threads = sys.argv[8]
+	num_threads = int(sys.argv[8])
 	
 	## Derived
 	working_dir = os.path.dirname(read_one)

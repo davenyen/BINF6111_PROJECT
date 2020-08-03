@@ -20,6 +20,7 @@ Matrix           = The barcode correspondence matrix
 Desired_barcodes = A list of desired barcodes
 Indices          = A list of sample-indices or library barcodes 
 Ref_genome       = The reference genome
+Log              = Path to log file, must be ${working_dir}/pipeline_log.txt
 ```
 
 ### Prerequisites
