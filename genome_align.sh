@@ -30,17 +30,13 @@
 # once all smaller BAM files are in each sub-directory:
 # merge all the BAM files together into one
 
-# Reference genome "/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index"
-# Sample library indexes "../test/team_b_stuff/A1_sample_indices.txt"
 WORKING_DIR=$1
 EXPERIMENT_DIREC="${WORKING_DIR}/SORTED_GROUPS/" # directory to samples is passed in as the first argument
 REFERENCE_GENOME=$2 # directory to reference genome index is passed in as the second argument
 LIB_BARCODES=$(<$3) # text file containing library barcodes passed in as third argument + reads contents/stores as string
-
-# pathways/directories to run different programs
-STAR_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/STAR-2.5.2b/bin/MacOSX_x86_64/STAR"
-BAMCOVERAGE_RUN="/Users/rna/anaconda2/bin/bamCoverage" # deepTools bamCoverage
-SAMTOOLS_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools"
+STAR_RUN=$4
+BAMCOVERAGE_RUN=$5
+SAMTOOLS_RUN=$6
 
 SUB_DIRECS=$(basename `ls -d $EXPERIMENT_DIREC/*/`) # get all the names of the sub-directories to go through
 

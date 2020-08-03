@@ -8,8 +8,8 @@
 
 WORKING_DIR=$1
 EXPERIMENT_DIREC="${WORKING_DIR}/SORTED_GROUPS/"
-BAMCOVERAGE_RUN="/Users/rna/anaconda2/bin/bamCoverage"
-SAMTOOLS_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools"
+BAMCOVERAGE_RUN=$2
+SAMTOOLS_RUN=$3
 
 SUB_DIRECS=$(ls "$EXPERIMENT_DIREC")
 

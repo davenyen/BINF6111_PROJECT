@@ -71,7 +71,6 @@ SECONDS=0					# records time taken by whole pipeline
 time=$(date +"%m-%d-%Y-%T")
 	
 
-# DO NOT CHANGE THE ORDER OF VARIABLE DECLARATION PLEASE
 # Default variables (if user chooses not to specify)
 threads=8 
 delete_fastq=true
@@ -79,21 +78,30 @@ output="bigwig"
 exist=false
 groups=false
 
+## PROGRAM PATHS -- PLEASE CHANGE THESE PATHS TO THE ACTUAL PROGRAM PATHS ON YOUR SYSTEM
+STAR_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/STAR-2.5.2b/bin/MacOSX_x86_64/STAR"
+BAMCOVERAGE_RUN="/Users/rna/anaconda2/bin/bamCoverage" # deepTools bamCoverage
+SAMTOOLS_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools"
+
+# getopts specifies what the different flags of the script are
+# flags can be passed into commandline in any order and flags
+# that have an associated parameter value have a : after them
+# in the string below
 while getopts "w:d:m:b:i:r:fego:t:l:" flag
 do
   case $flag in
-    w) working_dir=$OPTARG;;
-    d) data_path=$OPTARG;;
-    m) matrix=$OPTARG;;
-    b) desired_barcodes=$OPTARG;;
-    i) indices=$OPTARG;;
-    r) ref_genome=$OPTARG;;
-	f) delete_fastq=false;;
-	e) exist=true;;
-	g) groups=true;;
-	o) output=$OPTARG;;
-	t) threads=$OPTARG;;
-	l) log=$OPTARG;;
+    w) working_dir=$OPTARG;; # specifies the path of the working/output directories of script
+    d) data_path=$OPTARG;; # specifies the path to the input data
+    m) matrix=$OPTARG;; # the barcode correspondence matrix CSV file
+    b) desired_barcodes=$OPTARG;; # the list of barcodes text file
+    i) indices=$OPTARG;; # list of sample indices / library barcodes text file
+    r) ref_genome=$OPTARG;; # specifies the path to the reference genome directory
+	f) delete_fastq=false;; # option to delete intermediate fastq files at end of run
+	e) exist=true;; # specifies whether fastq files already exist in working directory
+	g) groups=true;; # specifies whether a desired lsit of cell groups is provided
+	o) output=$OPTARG;; # specifies the output type of the script
+	t) threads=$OPTARG;; # the number of threads to be run for script
+	l) log=$OPTARG;; # the log output file
     \?) echo "Invalid option: -$OPTARG" >&2 ;;
   esac
 done
@@ -104,139 +112,138 @@ file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+\.fastq(\.gz)?$'
 exec 3>&1 1>>${log} 2>&1 	# handles printing of messages to log and terminal
 
 
-# echo "===========================================================" >> ${log}
-# echo [$(date)] "PID: $$" >> ${log}
-# echo "===========================================================" >> ${log}
-# echo "" 1>&3
+echo "===========================================================" >> ${log}
+echo [$(date)] "PID: $$" >> ${log}
+echo "===========================================================" >> ${log}
+echo "" 1>&3
 
-# ## ERROR HANDLING INPUTS
-# if test $output != "bam" -a $output != "bigwig" -a $output != "bambw"
-# then
-# 	echo "Invalid output specification, please use bam, bigwig or bambw as a parameter for the flag -o." 1>&3
-# 	exit 1
-# fi
-
-
-# echo [$(date)] "Completed error checking inputs, pipeline will complete in background" 1>&3
+## ERROR HANDLING INPUTS
+if test $output != "bam" -a $output != "bigwig" -a $output != "bambw"
+then
+	echo "Invalid output specification, please use bam, bigwig or bambw as a parameter for the flag -o." 1>&3
+	exit 1
+fi
 
 
+echo [$(date)] "Completed error checking inputs, pipeline will complete in background" 1>&3
 
-# ## TRANSFER AND DECOMPRESS FASTQS
-#  for fastq in ${data_path}/*
-#  	do
+
+
+## TRANSFER AND DECOMPRESS FASTQS
+ for fastq in ${data_path}/*
+ 	do
 	
-#  	if ${exist}; then echo [$(date)] "Already copied and uncompresseed fastqs" >> ${log}; break; fi
+ 	if ${exist}; then echo [$(date)] "Already copied and uncompresseed fastqs" >> ${log}; break; fi
 
-#  	# check file is a read file
-#  	if [[ ${fastq} =~ ${file_regex} ]] && [[ ${BASH_REMATCH[3]} =~ 'R' ]]
-#  	then
-#  		file=$(basename ${fastq} .gz)
-#  		echo [$(date)] "Reading ${file}" >> ${log}
+ 	# check file is a read file
+ 	if [[ ${fastq} =~ ${file_regex} ]] && [[ ${BASH_REMATCH[3]} =~ 'R' ]]
+ 	then
+ 		file=$(basename ${fastq} .gz)
+ 		echo [$(date)] "Reading ${file}" >> ${log}
 		
-# 		# rsync it over, this way is safer in case fastq is huge
-#  		rsync -avz ${fastq} ${working_dir}
+		# rsync it over, this way is safer in case fastq is huge
+ 		rsync -avz ${fastq} ${working_dir}
 		
-#  		# uncompress file in place
-#  		gunzip ${working_dir}/${file}
+ 		# uncompress file in place
+ 		gunzip ${working_dir}/${file}
 
 		
-#  	# else, go to the next file
-#  	else  
-#  		echo [$(date)] "${fastq} is not a fastq file" >> ${log}
-#  		continue
-#  	fi
+ 	# else, go to the next file
+ 	else  
+ 		echo [$(date)] "${fastq} is not a fastq file" >> ${log}
+ 		continue
+ 	fi
 
-#  done
+ done
 
-# # # prepare working_dir
-#  for fastq in ${working_dir}/*
-#  	do
+# # prepare working_dir
+ for fastq in ${working_dir}/*
+ 	do
 
-# 	if [[ ${fastq} =~ "error" ]]
-#  	then
-#  		rm ${fastq}
-#  	fi
-#  done
+	if [[ ${fastq} =~ "error" ]]
+ 	then
+ 		rm ${fastq}
+ 	fi
+ done
 
-#  rm -fr ${working_dir}/SORTED_GROUPS/
-#  echo [$(date)] "Cleaned directory for new run" >> ${log}
+ rm -fr ${working_dir}/SORTED_GROUPS/
+ echo [$(date)] "Cleaned directory for new run" >> ${log}
 
-# # # iterate through files in working_dir to launch parsing of each lane
-#  for fastq in ${working_dir}/*
-#  	do
+# # iterate through files in working_dir to launch parsing of each lane
+ for fastq in ${working_dir}/*
+ 	do
 
-#  	# grab name of experiment (everything before the lane number)
-#  	if [[ ${identify_experiment_name} == 'not_exist' ]]
-#  	then
-#  		if [[ ${fastq} =~ ${file_regex} ]]
-#  		then
-#  			experiment_name=${BASH_REMATCH[1]}
-# 		else
-#  			echo [$(date)] "Error: Can't identify experiment name, will name experiment as 'sample_1'" >> ${log}
-#  			experiment_name='sample_1'
-#  		fi
+ 	# grab name of experiment (everything before the lane number)
+ 	if [[ ${identify_experiment_name} == 'not_exist' ]]
+ 	then
+ 		if [[ ${fastq} =~ ${file_regex} ]]
+ 		then
+ 			experiment_name=${BASH_REMATCH[1]}
+		else
+ 			echo [$(date)] "Error: Can't identify experiment name, will name experiment as 'sample_1'" >> ${log}
+ 			experiment_name='sample_1'
+ 		fi
 
-#  		echo [$(date)] "Running pipeline on experiment: ${experiment_name}" >> ${log}
-#  			identify_experiment_name=true
-#  	fi
+ 		echo [$(date)] "Running pipeline on experiment: ${experiment_name}" >> ${log}
+ 			identify_experiment_name=true
+ 	fi
 
-#  	if [[ ${fastq} =~ ${file_regex} ]] && [[ 'R1' == ${BASH_REMATCH[3]} ]] 
-#  	then
-#  		lane=${BASH_REMATCH[2]}
-#  		if [[ ${lane} == "L001" ]]
-#  			then
-#  			append_status=false
-#  		else 
-#  			append_status=true
-#  		fi
+ 	if [[ ${fastq} =~ ${file_regex} ]] && [[ 'R1' == ${BASH_REMATCH[3]} ]] 
+ 	then
+ 		lane=${BASH_REMATCH[2]}
+ 		if [[ ${lane} == "L001" ]]
+ 			then
+ 			append_status=false
+ 		else 
+ 			append_status=true
+ 		fi
 
-#  		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${groups} ${indices} ${experiment_name} ${append_status} ${threads}
+ 		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${groups} ${indices} ${experiment_name} ${append_status} ${threads}
 
-# 		if [[ $? -eq 0 ]]
-# 		then
-# 			echo [$(date)] "Completed lane: ${lane} " >> ${log}
-# 		else
-# 			echo [$(date)] "${lane} failed to run correctly, see traceback" >> ${log}
-# 			exit 1
-# 		fi
-#  	fi
+		if [[ $? -eq 0 ]]
+		then
+			echo [$(date)] "Completed lane: ${lane} " >> ${log}
+		else
+			echo [$(date)] "${lane} failed to run correctly, see traceback" >> ${log}
+			exit 1
+		fi
+ 	fi
 
-#  done
+ done
 
  echo [$(date)] "Completed fastq groups for ${experiment_name}" >> ${log}
 
 ## ALIGN TO HUMAN GENOME
-./genome_align.sh ${working_dir} ${ref_genome} ${indices}
+./genome_align.sh ${working_dir} ${ref_genome} ${indices} $STAR_RUN $BAMCOVERAGE_RUN $SAMTOOLS_RUN
 echo [$(date)] "Completed all alignments " >> ${log}
 
 ## BAM TO BIGWIG CONVERSION
+# only convert to bigwig if bigwig output is wanted or both bam and bigwig output is wanted
 if test $output = "bigwig" -o $output = "bambw" 
 then
-	./bam_to_bigwig.sh ${working_dir}
+	./bam_to_bigwig.sh ${working_dir} $BAMCOVERAGE_RUN $SAMTOOLS_RUN
 	echo [$(date)] "Completed all bigwig conversions " >> ${log}
 fi
 
 echo [$(date)] "Completed FASTQ files in each target cell directory " >> ${log}
 
-
 ## DELETE AND TIDY FILES
-if test $output = "bigwig" 
+if test $output = "bigwig" # only bigwig files are wanted as output
 then
 	file_extensions+=('.bam')
 	file_extensions+=('.bai')	
-elif test $output = "bam" 
-then
-	file_extensions+=('.bw')
-fi
-if ${delete_fastq}
+# DELETE
+# elif test $output = "bam" # only bam files are wanted as output
+# then
+# 	file_extensions+=('.bw')
+# fi
+if ${delete_fastq} # intermediate fastq files are to be deleted
 then
 	file_extensions+=('.fastq')
 fi
 echo ${file_extensions[@]}
 ./tidy_files.sh ${file_extensions[@]} "${working_dir}/SORTED_GROUPS"
 echo [$(date)] "Finished tidying up outputs" >> ${log}
-
-
 
 ## TIDYING OUTPUT (output desired formats, clean temp files)
 
