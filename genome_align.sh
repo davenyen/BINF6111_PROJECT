@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Author: Team B: Caitlin Ramsay, Michal Sernero, Sehhaj Grewal
+# UNSW BINF6111 Team Voineagu 
+# Date: August 1 2020
+
+# Function: Aligns fastq reads to human genome in STAR aligner using an adapter sequence
+# and then outputs BAM files (and bai index files) for each cell group.
+
 # commandline arguments: path to main directory with cell group outputs,
                         # path to directory with genome index
                         # file of library barcodes/sample indexes
@@ -34,9 +41,9 @@ WORKING_DIR=$1
 EXPERIMENT_DIREC="${WORKING_DIR}/SORTED_GROUPS/" # directory to samples is passed in as the first argument
 REFERENCE_GENOME=$2 # directory to reference genome index is passed in as the second argument
 LIB_BARCODES=$(<$3) # text file containing library barcodes passed in as third argument + reads contents/stores as string
-STAR_RUN=$4
+STAR_RUN=$4 #pathway/directory to run STAR Aligner Program
 BAMCOVERAGE_RUN=$5
-SAMTOOLS_RUN=$6
+SAMTOOLS_RUN=$6 #pathway/directory to run SAMTOOLS program
 
 SUB_DIRECS=$(basename `ls -d $EXPERIMENT_DIREC/*/`) # get all the names of the sub-directories to go through
 
@@ -99,7 +106,7 @@ do
     echo [$(date)] "Completed split BAM file into target cell groups for barcode: ${barcode}" >> ${WORKING_DIR}/pipeline_log.txt
 
     #mv [filename] [dest-dir]
-    
+    # move each target cell group BAM file to it's respective directory
     for direc in $SUB_DIRECS
     do
        mv "${EXPERIMENT_DIREC}/${direc}_${barcode}.bam" "${EXPERIMENT_DIREC}/${direc}"
@@ -107,15 +114,21 @@ do
     echo [$(date)] "Completed moving all BAM files into target cell directories for barcode: ${barcode}" >> ${WORKING_DIR}/pipeline_log.txt
 done
 
+# Tidy directory and delete intermediary files created from STAR aligner
 rm "${EXPERIMENT_DIREC}/Aligned.sortedByCoord.out.bam" "${EXPERIMENT_DIREC}/Log.out" "${EXPERIMENT_DIREC}/Log.final.out" "${EXPERIMENT_DIREC}/Log.progress.out" "${EXPERIMENT_DIREC}/SJ.out.tab"
 echo [$(date)] "Completed deleting leftover files from STAR run" >> ${WORKING_DIR}/pipeline_log.txt
 
+# For each target cell group, merge all BAM files (one for each barcode) into 1 large BAM file
 for direc in $SUB_DIRECS
 do
     BAM_FILES=$(ls ${EXPERIMENT_DIREC}/${direc}/*.bam)
     $SAMTOOLS_RUN merge --threads 8 -c "${EXPERIMENT_DIREC}/${direc}/${direc}.bam" $BAM_FILES
     echo [$(date)] "Completed merging BAM files into one big BAM: ${direc}" >> ${WORKING_DIR}/pipeline_log.txt
+    
+    # After all BAM files have merged into 1 big BAM file, delete all intermediary BAM files
     rm $BAM_FILES
+
+    # Each target cell group BAM file is indexed so it can be visualised.
     $SAMTOOLS_RUN index -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam"
     echo [$(date)] "Completed creating index file: ${direc}" >> ${WORKING_DIR}/pipeline_log.txt
 done
