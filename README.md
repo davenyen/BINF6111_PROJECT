@@ -1,8 +1,10 @@
 
 # Voineagu Pipeline
 
-This pipeline will sort a fastq file into groups based on their barcodes, indices and target/groups. It will then 
-align these sorted files to the human genome and visualise it on IGV.
+Launches pipeline to parse CROP-Seq fastq data files into corresponding directories for each perturbation group and aligns reads in each group to the human genome. BigWig files are generated for visualisation in genome browsers
+
+
+# USER DOCUMENTATION
 
 ## Getting Started
 
@@ -20,14 +22,34 @@ Matrix           = The barcode correspondence matrix
 Desired_barcodes = A list of desired barcodes
 Indices          = A list of sample-indices or library barcodes 
 Ref_genome       = The reference genome
-Log              = Path to log file, must be ${working_dir}/pipeline_log.txt
 ```
+
+## Pipeline Components
+
+### master_script.sh
+Explain logic blah blah
+
+
+### parse_line.py
+
+### genome_align.sh
+
+### bam_to_bigwig.sh
+
+### tidy_files.sh
+
+# TECHNICAL DOCUMENTATION
+
+## Installation
 
 ### Prerequisites
 
 * [Python3](https://www.python.org/downloads/)
 * Star Aligner
 * Linux OS
+
+### master_script.sh setup
+Change <x> paths in master_script.sh
 
 ## Running the tests
 
@@ -68,7 +90,7 @@ For the versions available, see the [tags on this repository](https://github.com
 
 ## Authors
 
-* **Chelsea Liang** - *Part A* 
+* **Chelsea Liang** - *Part A* - [LinkedIn](https://www.linkedin.com/in/chelsea-liang-03674b140/)
 * **David Nguyen** - *Part A* - [Github](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
 * **Caitlyn Ramsay** - *Part B* 
 * **Michal Sernero** - *Part B* 
@@ -83,22 +105,9 @@ This project is not licensed.
 * Pydocs
 * Stackoverflow
 
-## OLD README DELETE LATER?
-Path for the files:
-/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
 
-Bedtools and STAR can be found in these directories:
-/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/bedtools2/
-/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/STAR-2.5.2b/
 
-The script to collect protospacer/barcode correspondences information from a bam file is at 
-/Volumes/Data1/PROJECTS/CROPseq/Pilot/Scripts/getProtospacers.py
-An example of its usage is at: 
-cd /Volumes/Data1/PROJECTS/CROPseq/Pilot/hnPCR/iSeq_Script.txt
-The original source is https://github.com/shendurelab/single-cell-ko-screens
-TruSeq Read 1 is used to sequence 16 bp 10x Barcodes and 12 bp UMI
-
-## HELP FLAG
+# HELP FLAG
 master_script
 
 SYNOPSIS:

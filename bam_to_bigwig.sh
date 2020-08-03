@@ -13,6 +13,7 @@
 # For more information on bamCoverage, use the link below:
 # https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html
 
+set -e						# if any error occurs, exit 1
 
 #Directories of the Working Directory and the pathway to deepTools bamCoverage are given as arguments
 WORKING_DIR=$1

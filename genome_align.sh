@@ -33,6 +33,8 @@
 # once all smaller BAM files are in each sub-directory:
 # merge all the BAM files together into one
 
+set -e						# if any error occurs, exit 1
+
 WORKING_DIR=$1
 EXPERIMENT_DIREC="${WORKING_DIR}/SORTED_GROUPS/" # directory to samples is passed in as the first argument
 REFERENCE_GENOME=$2 # directory to reference genome index is passed in as the second argument

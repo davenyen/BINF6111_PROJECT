@@ -1,9 +1,7 @@
 #!/bin/bash
 
-set -e
-
 # Author: Chelsea Liang
-# Function: Parses reads (python) and launches alignments (bash)
+# Function: Parses reads (python) and launches alignment (bash)
 
 #####
 # This master script launches this pipeline
@@ -16,7 +14,6 @@ set -e
 # ./master_script.sh -w ${working_dir} -d ${data_path} -m ${matrix} \
 # -b ${desired_barcodes} -i ${indices} -r ${ref_genome} -ge &
 # disown -h %1
-
 
 
 # TEST CASES
@@ -49,7 +46,7 @@ set -e
 # sanity check master script
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
 # matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
-# desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
+# desired_barcodes=/Users/student/BINF6111_2020/data/group_names_A1.txt
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
 # working_dir=/Users/student/BINF6111_2020/test/check_master_script
@@ -63,10 +60,9 @@ set -e
 # working_dir=/Users/student/BINF6111_2020/test/groups_10mil_run
 
 
-## BENCHMARKING AND LOGS
+## LOGS AND ERRORS
 SECONDS=0					# records time taken by whole pipeline
-time=$(date +"%m-%d-%Y-%T")
-	
+set -e						# if any error occurs, exit 1
 
 # Default variables (if user chooses not to specify)
 threads=8 
@@ -132,6 +128,9 @@ fi
 # check all the files/paths exist including program paths
 # check if the parameter values begin with '-'
 
+echo ""
+echo [$(date)] "Completed error checking inputs, pipeline will complete in background"
+
 # To name files and paths
 identify_experiment_name=not_exist
 file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+\.fastq(\.gz)?$'
@@ -141,10 +140,6 @@ exec 3>&1 1>>${log} 2>&1 	# handles printing of messages to log and terminal
 echo "===========================================================" >> ${log}
 echo [$(date)] "PID: $$" >> ${log}
 echo "===========================================================" >> ${log}
-echo "" 1>&3
-
-# echo [$(date)] "Completed error checking inputs, pipeline will complete in background" 1>&3
-
 
 
 ## TRANSFER AND DECOMPRESS FASTQS
@@ -249,18 +244,14 @@ echo [$(date)] "Completed FASTQ files in each target cell directory " >> ${log}
 if test $output = "bigwig" # only bigwig files are wanted as output
 then
 	file_extensions+=('.bam')
-	file_extensions+=('.bai')	
-# DELETE
-# elif test $output = "bam" # only bam files are wanted as output
-# then
-# 	file_extensions+=('.bw')
-# fi
+	file_extensions+=('.bai')
+fi	
 if ${delete_fastq} # intermediate fastq files are to be deleted
 then
 	file_extensions+=('.fastq')
 fi
 echo ${file_extensions[@]}
-./tidy_files.sh ${file_extensions[@]} "${working_dir}/SORTED_GROUPS"
+./tidy_files.sh ${file_extensions[@]} "${working_dir}"
 echo [$(date)] "Finished tidying up outputs" >> ${log}
 
 ## TIDYING OUTPUT (output desired formats, clean temp files)
