@@ -7,6 +7,9 @@
 # Function: Converts BAM files into BigWig files using the bamCoverage function of deepTools
 # Version of deepTools used in this version: 3.3.0
 
+# commandline arguments: path to main directory with cell group outputs,
+#                        path to BamCoverage program
+
 # For more information on bamCoverage, use the link below:
 # https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html
 
@@ -16,7 +19,7 @@ WORKING_DIR=$1
 EXPERIMENT_DIREC="${WORKING_DIR}/SORTED_GROUPS/"
 BAMCOVERAGE_RUN=$2
 
-SUB_DIRECS=$(ls "$EXPERIMENT_DIREC")
+SUB_DIRECS=$(basename `ls -d $EXPERIMENT_DIREC/*/`)
 
 # Goes through each directory for each sample, and given a BAM and indexed BAM file
 # run bamCoverage on the BAM file in the directory

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Author: Chelsea Liang
 # Function: Parses reads (python) and launches alignments (bash)
 
@@ -12,7 +14,7 @@
 # set variables in terminal, see test cases below
 # mkdir -p ${working_dir}
 # ./master_script.sh -w ${working_dir} -d ${data_path} -m ${matrix} \
-# -b ${desired_barcodes} -i ${indices} -r ${ref_genome} -l ${log} -ge &
+# -b ${desired_barcodes} -i ${indices} -r ${ref_genome} -ge &
 # disown -h %1
 
 
@@ -26,7 +28,6 @@
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
 # working_dir=/Users/student/BINF6111_2020/test/full_run_A1
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
-# log=${working_dir}/pipeline_log.txt
 
 # full run A1 groups 
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
@@ -35,7 +36,6 @@
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
 # working_dir=/Users/student/BINF6111_2020/test/full_run_A1_groups
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
-# log=${working_dir}/pipeline_log.txt
 
 # full run A2
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A2
@@ -44,7 +44,6 @@
 # indices=/Users/student/BINF6111_2020/data/Indices_A2.txt
 # working_dir=/Users/student/BINF6111_2020/test/full_run_A2
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
-# log=${working_dir}/pipeline_log.txt
 
 
 # sanity check master script
@@ -54,7 +53,6 @@
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
 # working_dir=/Users/student/BINF6111_2020/test/check_master_script
-# log=${working_dir}/pipeline_log.txt
 
 # test groups flag
 # data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
@@ -63,7 +61,6 @@
 # indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
 # ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
 # working_dir=/Users/student/BINF6111_2020/test/groups_10mil_run
-# log=${working_dir}/pipeline_log.txt
 
 
 ## BENCHMARKING AND LOGS
@@ -83,11 +80,18 @@ STAR_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/STAR-2.5.2b/bin/MacOSX_x86
 BAMCOVERAGE_RUN="/Users/rna/anaconda2/bin/bamCoverage" # deepTools bamCoverage
 SAMTOOLS_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools"
 
+## CHECK README.md FILE EXISTS IN THE CURRENT WORKING DIRECTORY
+if test ! -f README.md
+then
+	echo "You have removed the README file for this program. Please move it into the same directory as this script before running it." 1>&3
+	exit 1
+fi
+
 # getopts specifies what the different flags of the script are
 # flags can be passed into commandline in any order and flags
 # that have an associated parameter value have a : after them
 # in the string below
-while getopts "w:d:m:b:i:r:fego:t:l:" flag
+while getopts "w:d:m:b:i:r:fego:t:h" flag
 do
   case $flag in
     w) working_dir=$OPTARG;; # specifies the path of the working/output directories of script
@@ -96,36 +100,50 @@ do
     b) desired_barcodes=$OPTARG;; # the list of barcodes text file
     i) indices=$OPTARG;; # list of sample indices / library barcodes text file
     r) ref_genome=$OPTARG;; # specifies the path to the reference genome directory
-	f) delete_fastq=false;; # option to delete intermediate fastq files at end of run
+	f) delete_fastq=false;; # option to keep intermediate fastq files at end of run
 	e) exist=true;; # specifies whether fastq files already exist in working directory
 	g) groups=true;; # specifies whether a desired lsit of cell groups is provided
 	o) output=$OPTARG;; # specifies the output type of the script
 	t) threads=$OPTARG;; # the number of threads to be run for script
-	l) log=$OPTARG;; # the log output file
-    \?) echo "Invalid option: -$OPTARG" >&2 ;;
+	h) tail -n46 README.md
+		exit 1;;
+	?) echo "? option: -$OPTARG" >&2 
+		exit 1;;
   esac
 done
+
+## ERROR HANDLING INPUTS
+
+# Check valid output option value has been inputted
+if test $output != "bam" -a $output != "bigwig" -a $output != "bambw"
+then
+	echo "Invalid output specification, please use bam, bigwig or bambw as a parameter for the flag -o."
+	exit 1
+fi
+
+# Check all required parameters have been inputted
+if [[ ! ($working_dir && $data_path && $matrix && $desired_barcodes && $indices && $ref_genome) ]]
+then
+	echo "One of the required parameters has not been inputted."
+	echo "usage: ./master_script.sh -w working_dir - d data_path -m matrix -b desired_barcodes -i indices -r ref_genome [-o output_format] [-f] [-e] [-g] [-t]" 
+	exit 1
+fi
+
+# check all the files/paths exist including program paths
+# check if the parameter values begin with '-'
 
 # To name files and paths
 identify_experiment_name=not_exist
 file_regex='^(.+)_(L[0-9]{3})_([RI][12])_.+\.fastq(\.gz)?$'
+log=${working_dir}/pipeline_log.txt
 exec 3>&1 1>>${log} 2>&1 	# handles printing of messages to log and terminal
-
 
 echo "===========================================================" >> ${log}
 echo [$(date)] "PID: $$" >> ${log}
 echo "===========================================================" >> ${log}
 echo "" 1>&3
 
-## ERROR HANDLING INPUTS
-if test $output != "bam" -a $output != "bigwig" -a $output != "bambw"
-then
-	echo "Invalid output specification, please use bam, bigwig or bambw as a parameter for the flag -o." 1>&3
-	exit 1
-fi
-
-
-echo [$(date)] "Completed error checking inputs, pipeline will complete in background" 1>&3
+# echo [$(date)] "Completed error checking inputs, pipeline will complete in background" 1>&3
 
 
 
@@ -221,7 +239,7 @@ echo [$(date)] "Completed all alignments " >> ${log}
 # only convert to bigwig if bigwig output is wanted or both bam and bigwig output is wanted
 if test $output = "bigwig" -o $output = "bambw" 
 then
-	./bam_to_bigwig.sh ${working_dir} $BAMCOVERAGE_RUN $SAMTOOLS_RUN
+	./bam_to_bigwig.sh ${working_dir} $BAMCOVERAGE_RUN
 	echo [$(date)] "Completed all bigwig conversions " >> ${log}
 fi
 

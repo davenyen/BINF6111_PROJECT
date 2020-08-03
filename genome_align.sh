@@ -8,17 +8,13 @@
 # and then outputs BAM files (and bai index files) for each cell group.
 
 # commandline arguments: path to main directory with cell group outputs,
-                        # path to directory with genome index
-                        # file of library barcodes/sample indexes
-# ./genome_align.sh ../test/output/PilotCROP_C_1_S1_SORTED_GROUPS/ /Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index ../test/team_b_stuff/A1_sample_indices.txt
+#                        path to directory with genome index,
+#                        file of library barcodes/sample indexes,
+#                        path to STAR aligner program,
+#                        path to SamTools program
 
 # ERROR HANDLING
     # make sure input library barcode file is in correct format
-
-# for each sub-directory in main experimental directory
-    # perform STAR alignment on fastq file in there
-    # needs to output to the same sub-directory
-    # output needs to be BAM
 
 # if there is a distinct number of adaptor/barcode sequences:
 # for each adaptor sequence
@@ -42,8 +38,7 @@ EXPERIMENT_DIREC="${WORKING_DIR}/SORTED_GROUPS/" # directory to samples is passe
 REFERENCE_GENOME=$2 # directory to reference genome index is passed in as the second argument
 LIB_BARCODES=$(<$3) # text file containing library barcodes passed in as third argument + reads contents/stores as string
 STAR_RUN=$4 #pathway/directory to run STAR Aligner Program
-BAMCOVERAGE_RUN=$5
-SAMTOOLS_RUN=$6 #pathway/directory to run SAMTOOLS program
+SAMTOOLS_RUN=$5 #pathway/directory to run SAMTOOLS program
 
 SUB_DIRECS=$(basename `ls -d $EXPERIMENT_DIREC/*/`) # get all the names of the sub-directories to go through
 
@@ -56,12 +51,6 @@ do
     # go through each sub-directory (ie. target cell group directory) in the experiment/sample directory
     for direc in $SUB_DIRECS
     do
-        # ignore _STARtmp
-        # if [[ $direc == _STARtmp ]]
-        # then 
-        #     continue
-        # fi
-
         # append each read file corresponding with one of the four library barcodes
         # across all target cell group sub-directories into a string
         READ_FILES="${READ_FILES}${EXPERIMENT_DIREC}/${direc}/${direc}_${barcode}.fastq,"
@@ -102,7 +91,9 @@ do
     >> ${WORKING_DIR}/pipeline_log.txt
     
     # splits the big BAM file into the associated target cell group BAM files
-    /Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools split "${EXPERIMENT_DIREC}/Aligned.sortedByCoord.out.bam" -f "${EXPERIMENT_DIREC}/%!_${barcode}.bam" 
+    # %!_${barcode} is the pattern for naming the BAM files for each target cell group
+    # %! represents the target cell group name
+    $SAMTOOLS_RUN split "${EXPERIMENT_DIREC}/Aligned.sortedByCoord.out.bam" -f "${EXPERIMENT_DIREC}/%!_${barcode}.bam" 
     echo [$(date)] "Completed split BAM file into target cell groups for barcode: ${barcode}" >> ${WORKING_DIR}/pipeline_log.txt
 
     #mv [filename] [dest-dir]
@@ -132,13 +123,3 @@ do
     $SAMTOOLS_RUN index -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam"
     echo [$(date)] "Completed creating index file: ${direc}" >> ${WORKING_DIR}/pipeline_log.txt
 done
-
-
-# move into loop above
-# for direc in $SUB_DIRECS
-# do
-#     $SAMTOOLS_RUN index -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam"
-#     $BAMCOVERAGE_RUN -p 8 -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam" -of bigwig -o "${EXPERIMENT_DIREC}/${direc}/${direc}.bw" > /dev/null 2>&1
-# done
-
-#/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/samtools-1.3.1/samtools view -h -o "${EXPERIMENT_DIREC}/ARPC2/out.sam" "${EXPERIMENT_DIREC}/ARPC2/Aligned.sortedByCoord.out.bam"
