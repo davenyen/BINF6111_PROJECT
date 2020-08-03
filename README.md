@@ -97,3 +97,51 @@ An example of its usage is at:
 cd /Volumes/Data1/PROJECTS/CROPseq/Pilot/hnPCR/iSeq_Script.txt
 The original source is https://github.com/shendurelab/single-cell-ko-screens
 TruSeq Read 1 is used to sequence 16 bp 10x Barcodes and 12 bp UMI
+
+## HELP FLAG
+master_script
+
+SYNOPSIS:
+Launches pipeline to parse CROP-Seq fastq data files into corresponding directories for each perturbation group and aligns reads in each group to the human genome. BigWig files are generated for visualisation in genome browsers
+
+USAGE:
+./master_script.sh -w working_dir - d data_path -m matrix -b desired_barcodes -i indices -r ref_genome [-o output_format] [-f] [-e] [-g] [-t]
+
+Required flags:
+	-w	PATH to working directory for output 
+
+	-d	PATH to input data
+
+	-m	PATH to barcode correspondence matrix CSV file
+
+	-b	PATH to txt file with list of barcodes
+
+	-i	PATH to txt file with list of sample indices (library barcodes)
+
+	-r	PATH to reference genome directory
+
+
+Optional flags:
+	-o		
+	 bam		output files only in BAM format
+	 bigwig		output files only in BigWig format
+	 bambw          output files in BAM and BigWig format
+			default: output is BAM and BigWig
+
+	-f		keep fastq files in working directory
+		        default: fastq files are deleted from working directory
+
+	-e		fastq files already exist in working directories
+			default: false
+
+	-g		list of cell groups have been provided
+			default: assumed list of barcodes has been provided
+
+	-t		number of threads used to run for the script
+			default: 8
+
+EXAMPLE:
+./master_script.sh -w “experiment/results/” -d “DATA/fastq_path/A1/” -m “DATA/barcode_matrix.csv” -b “DATA/A1_barcodes.txt” -i “DATA/A1_indices.txt” -r “GENOMES/HUMAN/hg19/STAR_genome_index” -o “bigwig”
+
+AUTHORS:
+UNSW BINF6111 Team Voineagu 2020 - Caitlin Ramsay, Chelsea Liang, David Nguyen, Michal Sernero, Sehhaj Grewal
