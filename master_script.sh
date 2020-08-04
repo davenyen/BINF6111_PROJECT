@@ -227,7 +227,7 @@ echo "===========================================================" >> ${log}
  echo [$(date)] "Completed fastq groups for ${experiment_name}" >> ${log}
 
 ## ALIGN TO HUMAN GENOME
-./genome_align.sh ${working_dir} ${ref_genome} ${indices} $STAR_RUN $BAMCOVERAGE_RUN $SAMTOOLS_RUN
+./genome_align.sh ${working_dir} ${ref_genome} ${indices} $STAR_RUN $SAMTOOLS_RUN
 echo [$(date)] "Completed all alignments " >> ${log}
 
 ## BAM TO BIGWIG CONVERSION
