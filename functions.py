@@ -14,6 +14,7 @@ import collections
 import typing
 from itertools import islice
 
+
 ############################################################################
 ################################ Classes ###################################
 ############################################################################
@@ -90,22 +91,24 @@ def create_sorted_fastq_file (read_two_file: str, barcode_matrix: dict, r_one_co
 	file.close()
 	
 # Combines create_fastq_files and coordinates_barcodes_dictionary
-def create_coordinates_barcodes_dictionary (read_one: str, barcode_matrix: dict, desired_barcodes, indices_list: list) -> (dict, int):
+def create_coordinates_barcodes_dictionary (read_one: str, barcode_matrix: dict, desired_barcodes, indices_list: list) -> (dict, int, int):
 	"""
 		Parameters:
-			read_one         = the R1 file
-			barcode_matrix   = cell barcode matrix {barcode: target/group}
-			desired_barcodes = barcodes that we want (not sure if we're given this chels)
-			indices_list     = list of indices that we want
+			read_one         	= the R1 file
+			barcode_matrix   	= cell barcode matrix {barcode: target/group}
+			desired_barcodes	= barcodes that we want (not sure if we're given this chels)
+			indices_list     	= list of indices that we want
 		Attributes:
-			read_one_dic     = dictionary to be returned where {r1coords: barcode}
-			line_count       = number of lines in R1 used for threading function
-			read_one_file    = open read-one files 
+			read_one_dic     	= dictionary to be returned where {r1coords: barcode}
+			line_count       	= number of lines in R1 used for threading function
+			read_one_file    	= open read-one files 
+			error_indices_count = number of reads that have unknown indices
 		Description:
 		Important:
 	"""
 	read_one_dic = {}
 	line_count = 0
+	error_indices_count = 0 
 	read_one_file = open(read_one, 'r')
 	error_read_one_file = open(read_one + '.error', 'a')
 
@@ -117,20 +120,16 @@ def create_coordinates_barcodes_dictionary (read_one: str, barcode_matrix: dict,
 			if line_indice not in indices_list:
 				consume(read_one_file, 3)
 				line_count += 3
-				error_read_one_file.write(line.rstrip() + ':UNKNOWN_INDICE\n')
+				error_indices_count += 1
+				error_read_one_file.write(line)
 				continue
 			coordinates = (':'.join(line.split(':')[4:7])).split(' ')[0:1][0]
-			header = line
 		# if it's not a header must be a sequence/+/quality
 		else:
 			barcode = ''.join(line[0:16])
+			# if it is a desired barcode, want to match it to read two
 			if barcode in barcode_matrix.keys() and barcode in desired_barcodes.keys():
-			# if it is a desired barcode, match it to read two
-				#if barcode in desired_barcodes.keys():
 				read_one_dic[coordinates] = barcode 
-				#error_read_one_file.write(header.rstrip() + ':CORRECT_BARCODE\n')
-			else:
-				error_read_one_file.write(header.rstrip() + ':UNKNOWN_BARCODE\n')
 
 		if not i % 2:
 			consume(read_one_file, 2)
@@ -138,8 +137,9 @@ def create_coordinates_barcodes_dictionary (read_one: str, barcode_matrix: dict,
 
 	error_read_one_file.close()
 	read_one_file.close()
+	total_lines = line_count+i
 
-	return read_one_dic, line_count+i
+	return read_one_dic, total_lines, error_indices_count
 
 # Creates target directories (Can remove return value)
 def create_target_directory (output_directory: str, append: bool):

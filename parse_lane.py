@@ -35,11 +35,13 @@ if __name__ == '__main__':
 	## Settings (can tweak)
 	log_path = (working_dir + '/pipeline_log.txt')
 	output_dir = (working_dir + '/SORTED_GROUPS')
-	maaaaaaaaany_lines = 99999999
+	maaaaaaaaany_lines = 99999999 # less than 100 million
 
 	## Writing to log
 	message.append('read_one = ' + read_one)
 	message.append('csv_matrix = ' + csv_matrix)
+	message.append('desired_barcodes = ' + desired_barcodes)
+	message.append('groups = ' + str(groups))
 	message.append('indices_path = ' + indices_path)
 	message.append('experiment_name = ' + experiment_name)
 	message.append('working_dir = ' + working_dir)
@@ -67,8 +69,12 @@ if __name__ == '__main__':
 
 	start_time = time.time()
 	write_to_log (start_time, log_path, "Beginning creation of coord_dic")
-	coord_barcode_matrix, line_count = create_coordinates_barcodes_dictionary (read_one, group_barcode_matrix, desired_barcodes, indices_list)
-	write_to_log (start_time, log_path, "Finished creation of coord_dic")
+	coord_barcode_matrix, line_count, error_indices_count = \
+		create_coordinates_barcodes_dictionary (read_one, group_barcode_matrix, desired_barcodes, indices_list)
+	percentage_error = round((error_indices_count/(line_count/4))*100, 2)
+	write_to_log (start_time, log_path, 
+		"Finished creation of coord_dic, \n{} percent of reads have unknown library indices".format(percentage_error))
+
 
 	start_time = time.time()
 	write_to_log (start_time, log_path, "Beginning creation of cell assignment")

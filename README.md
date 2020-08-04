@@ -8,119 +8,82 @@ Launches pipeline to parse CROP-Seq fastq data files into corresponding director
 
 ## Getting Started
 
+1. Navigate to pipeline directory (contains all scripts)
+2. Set variable paths
+3. Launch script
+
+### 1. Navigate to pipeline directory (contains all scripts)
 To get started, download this repo and make sure you have your input files/directories ready. 
 
-To run the pipeline, enter this in your terminal
+### 2. Set variable paths
+
+#### Sample run (8 minutes, 2000 line fastqs)
+sanity check master script
 ```
-./master_script.sh ${working_dir} ${data_path} ${matrix} ${desired_barcodes} ${indices} ${ref_genome}
-```
-Where the files are:
-```
-Working_dir      = The directory where you want the output
-Data_path        = The path to the full experiment data file
-Matrix           = The barcode correspondence matrix 
-Desired_barcodes = A list of desired barcodes
-Indices          = A list of sample-indices or library barcodes 
-Ref_genome       = The reference genome
-```
-
-## Pipeline Components
-
-### master_script.sh
-Explain logic blah blah
-
-### parse_lane.py
-
-
-### genome_align.sh
-
-### bam_to_bigwig.sh
-
-### tidy_files.sh
-
-
-interests
-# long walks on the beach
-
-
-multithreading
-flags to chose your output and inputs 
-summary statistics
-highly human readable logs
-Irina is highly interested in the customisation of the normalisation from bam to bigwig cpm and other features
-
-# TECHNICAL DOCUMENTATION
-
-## Installation
-
-### Prerequisites
-
-* [Python3](https://www.python.org/downloads/)
-* Star Aligner
-* Linux OS
-
-### master_script.sh setup
-Change <x> paths in master_script.sh
-
-## Running the tests
-
-Testing is run via;
-
-```
-./test.sh 
+data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
+matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
+desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
+indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
+ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
+working_dir=/Users/student/BINF6111_2020/test/check_master_script
 ```
 
-### Break down into end to end tests
-
-Explain what these tests test and why
-
+#### Sample run (1 hour, 100M line fastqs)
+test 100 million for threading
 ```
-Tests here
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Example here
+data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
+matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
+desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
+indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
+ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
+working_dir=/Users/student/BINF6111_2020/test/100mil_test
 ```
 
-## Deployment
+#### Sample full run (5.5 hour, 1B line fastqs)
+full run A1
+```
+data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
+matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
+desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
+indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
+working_dir=/Users/student/BINF6111_2020/test/full_run_A1
+ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
+```
 
-Have the pipeline folder and run the script.
+full run A2
+```
+data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A2
+matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A2.csv
+desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA2.txt
+indices=/Users/student/BINF6111_2020/data/Indices_A2.txt
+working_dir=/Users/student/BINF6111_2020/test/full_run_A2
+ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
+```
 
-## Built With
 
-* [IGV](link to igv here)
-* [Python](https://www.python.org/)
+This master script launches this pipeline
+- & at the end will run this script in a background process
+- you may exit the shell when following is printed to the terminal:
+"Completed error checking inputs, pipeline will complete in background"
+- basic run:
+```
+mkdir -p ${working_dir}
+./master_script.sh -w ${working_dir} -d ${data_path} -m ${matrix} \
+-b ${desired_barcodes} -i ${indices} -r ${ref_genome} &
+disown -h %1
+```
 
-## Versioning
-
-For the versions available, see the [tags on this repository](https://github.com/cactusjuic3/teamvoineagu/tags). 
-
-## Authors
-
-* **Chelsea Liang** - *Part A* - [LinkedIn](https://www.linkedin.com/in/chelsea-liang-03674b140/)
-* **David Nguyen** - *Part A* - [Github](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
-* **Caitlyn Ramsay** - *Part B* 
-* **Michal Sernero** - *Part B* 
-* **Sehhaj Grewal** - *Part B*
-
-## License
-
-This project is not licensed. 
-
-## Acknowledgments
-
-* Pydocs
-* Stackoverflow
-
+```
+working_dir      = The directory where you want the output
+data_path        = The path to the full data directory containing fastqs
+matrix           = The group, cell barcode correspondence matrix 
+desired_barcodes = A list of desired barcodes, one barcode or group per line
+indices          = A list of library indices, one index per line
+ref_genome       = Path to the reference genome for STAR aligner
+```
 
 
 # HELP FLAG
-master_script
-
 SYNOPSIS:
 Launches pipeline to parse CROP-Seq fastq data files into corresponding directories for each perturbation group and aligns reads in each group to the human genome. BigWig files are generated for visualisation in genome browsers
 

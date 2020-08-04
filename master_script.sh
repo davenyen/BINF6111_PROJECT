@@ -3,62 +3,14 @@
 # Author: Chelsea Liang
 # Function: Parses reads (python) and launches alignment (bash)
 
-#####
 # This master script launches this pipeline
-	# nohup and & at the end will run this script in a background process
 	# you may exit the shell when following is printed to the terminal:
 	# "Completed error checking inputs, pipeline will complete in background"
 # run with:
-# set variables in terminal, see test cases below
 # mkdir -p ${working_dir}
 # ./master_script.sh -w ${working_dir} -d ${data_path} -m ${matrix} \
-# -b ${desired_barcodes} -i ${indices} -r ${ref_genome} -ge &
+# -b ${desired_barcodes} -i ${indices} -r ${ref_genome} &
 # disown -h %1
-
-
-# TEST CASES
-
-# full run A1 
-# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
-# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
-# desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA1.txt
-# indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
-# working_dir=/Users/student/BINF6111_2020/test/full_run_A1
-# ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
-
-# full run A1 groups 
-# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
-# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
-# desired_barcodes=/Users/student/BINF6111_2020/data/group_names_A1.txt
-# indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
-# working_dir=/Users/student/BINF6111_2020/test/full_run_A1_groups
-# ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
-
-# full run A2
-# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A2
-# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A2.csv
-# desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA2.txt
-# indices=/Users/student/BINF6111_2020/data/Indices_A2.txt
-# working_dir=/Users/student/BINF6111_2020/test/full_run_A2
-# ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
-
-
-# sanity check master script
-# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
-# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
-# desired_barcodes=/Users/student/BINF6111_2020/data/group_names_A1.txt
-# indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
-# ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
-# working_dir=/Users/student/BINF6111_2020/test/check_master_script
-
-# test groups flag
-# data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
-# matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A1.csv
-# desired_barcodes=/Users/student/BINF6111_2020/test/groups_10mil_run/some_groups_A1.txt
-# indices=/Users/student/BINF6111_2020/data/Indices_A1.txt
-# ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
-# working_dir=/Users/student/BINF6111_2020/test/groups_10mil_run
-
 
 ## LOGS AND ERRORS
 SECONDS=0					# records time taken by whole pipeline
