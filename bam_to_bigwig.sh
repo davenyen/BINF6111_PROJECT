@@ -19,6 +19,7 @@ set -e						# if any error occurs, exit 1
 WORKING_DIR=$1
 EXPERIMENT_DIREC="${WORKING_DIR}/SORTED_GROUPS/"
 BAMCOVERAGE_RUN=$2
+LIB_BARCODES=$3
 
 SUB_DIRECS=$(basename `ls -d $EXPERIMENT_DIREC/*/`)
 
@@ -37,7 +38,12 @@ SUB_DIRECS=$(basename `ls -d $EXPERIMENT_DIREC/*/`)
 
 for direc in $SUB_DIRECS
 do
-    $BAMCOVERAGE_RUN --normalizeUsing CPM -p 8 -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam" -of bigwig -o "${EXPERIMENT_DIREC}/${direc}/${direc}.bw" > /dev/null 2>&1
-    echo "Completed bam to bw conversion: ${direc}" >> ${WORKING_DIR}/pipeline_log.txt
+    # Convert BAM to BigWig if the BAM file has reads
+    if $BAMCOVERAGE_RUN --normalizeUsing CPM -p 8 -b "${EXPERIMENT_DIREC}/${direc}/${direc}.bam" -of bigwig -o "${EXPERIMENT_DIREC}/${direc}/${direc}.bw" > /dev/null 2>&1
+    then
+        echo "Completed bam to bw conversion: ${direc}" >> ${WORKING_DIR}/pipeline_log.txt
+    else
+        echo "BigWig file not created - no reads in BAM file: ${direc}" >> ${WORKING_DIR}/pipeline_log.txt
+    fi
 done
 

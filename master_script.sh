@@ -111,25 +111,40 @@ done
 ## ERROR HANDLING INPUTS
 
 # Check valid output option value has been inputted
-if test $output != "bam" -a $output != "bigwig" -a $output != "bambw"
+if [[ "$output" != "bam" && "$output" != "bigwig" && "$output" != "bambw" ]] 
 then
 	echo "Invalid output specification, please use bam, bigwig or bambw as a parameter for the flag -o."
+	echo "Run ./master_script.sh -h to see the possible input options for -o."
 	exit 1
 fi
 
 # Check all required parameters have been inputted
-if [[ ! ($working_dir && $data_path && $matrix && $desired_barcodes && $indices && $ref_genome) ]]
+if [[ ! ("$working_dir" && "$data_path" && "$matrix" && "$desired_barcodes" && "$indices" && "$ref_genome") ]]
 then
 	echo "One of the required parameters has not been inputted."
-	echo "usage: ./master_script.sh -w working_dir - d data_path -m matrix -b desired_barcodes -i indices -r ref_genome [-o output_format] [-f] [-e] [-g] [-t]" 
+	echo "usage: ./master_script.sh -w working_dir -d data_path -m matrix -b desired_barcodes -i indices -r ref_genome [-o output_format] [-f] [-e] [-g] [-t]" 
 	exit 1
 fi
 
-# check all the files/paths exist including program paths
-# check if the parameter values begin with '-'
+# Check all the files/paths exist
+if [[ (! -e "$working_dir") || (! -e "$data_path") || (! -e "$matrix") || (! -e "$desired_barcodes") || (! -e "$indices") || (! -e "$ref_genome") ]] 
+then
+	echo "One of the inputted paths or files is incorrect, please check that all inputted paths and files exist." 
+	exit 1
+fi
+
+# Check all program paths exist
+if [[ (! -e "$STAR_RUN") || (! -e "$BAMCOVERAGE_RUN") || (! -e "$SAMTOOLS_RUN") ]]
+then
+	echo "One of the program paths for either STAR aligner, BamCoverage or SamTools is incorrect."
+	echo "Please ensure that the program paths have been changed to their correct paths on your\
+ system and that they exist." 
+	exit 1
+fi
 
 echo ""
-echo [$(date)] "Completed error checking inputs, pipeline will complete in background"
+echo [$(date)] "Completed error checking inputs, pipeline will complete in background."
+echo "Make sure to check pipeline_log.txt before using results in case the script terminated unexpectedly."
 
 # To name files and paths
 identify_experiment_name=not_exist
@@ -232,30 +247,32 @@ echo [$(date)] "Completed all alignments " >> ${log}
 
 ## BAM TO BIGWIG CONVERSION
 # only convert to bigwig if bigwig output is wanted or both bam and bigwig output is wanted
-if test $output = "bigwig" -o $output = "bambw" 
+if [[ "$output" == "bigwig" || "$output" == "bambw" ]] 
 then
-	./bam_to_bigwig.sh ${working_dir} $BAMCOVERAGE_RUN
+	./bam_to_bigwig.sh ${working_dir} $BAMCOVERAGE_RUN ${indices}
 	echo [$(date)] "Completed all bigwig conversions " >> ${log}
 fi
 
 echo [$(date)] "Completed FASTQ files in each target cell directory " >> ${log}
 
 ## DELETE AND TIDY FILES
-if test $output = "bigwig" # only bigwig files are wanted as output
+if [[  "$output" == "bigwig" ]] # only bigwig files are wanted as output
 then
 	file_extensions+=('.bam')
 	file_extensions+=('.bai')
-fi	
-if ${delete_fastq} # intermediate fastq files are to be deleted
+fi
+
+if $delete_fastq # intermediate fastq files are to be deleted
 then
 	file_extensions+=('.fastq')
 fi
-echo ${file_extensions[@]}
+
+## TIDYING OUTPUT (output desired formats, clean temp files)
+echo "File types to be deleted: " ${file_extensions[@]}
 ./tidy_files.sh ${file_extensions[@]} "${working_dir}"
 echo [$(date)] "Finished tidying up outputs" >> ${log}
 
-## TIDYING OUTPUT (output desired formats, clean temp files)
-
+## PRINTS DURATION OF SCRIPT
 duration=${SECONDS}
 echo "$((${duration} / 3600)) hours, $(((${duration} / 60) % 60)) minutes and $((${duration} % 60)) seconds elapsed" >> ${log}
 echo [$(date)] "COMPLETED PIPELINE for: ${experiment_name}" >> ${log}

@@ -22,6 +22,7 @@ echo [$(date)] "Deleted temp files" >> ${WORKING_DIR}/pipeline_log.txt
 # selection of files for visualisation
 mv ${EXPERIMENT_DIREC}/*/* ${EXPERIMENT_DIREC}/
 
+# delete remaining sub-directories
 for direc in ${EXPERIMENT_DIREC}/*
 do 
     if [[ -d ${direc} ]]

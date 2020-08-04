@@ -29,14 +29,15 @@ Ref_genome       = The reference genome
 ### master_script.sh
 Explain logic blah blah
 
-
-### parse_line.py
+### parse_lane.py
 
 ### genome_align.sh
 
 ### bam_to_bigwig.sh
 
 ### tidy_files.sh
+
+
 
 # TECHNICAL DOCUMENTATION
 
