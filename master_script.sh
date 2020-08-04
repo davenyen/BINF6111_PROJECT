@@ -249,7 +249,7 @@ echo [$(date)] "Completed all alignments " >> ${log}
 # only convert to bigwig if bigwig output is wanted or both bam and bigwig output is wanted
 if [[ "$output" == "bigwig" || "$output" == "bambw" ]] 
 then
-	./bam_to_bigwig.sh ${working_dir} $BAMCOVERAGE_RUN ${indices}
+	./bam_to_bigwig.sh ${working_dir} $BAMCOVERAGE_RUN
 	echo [$(date)] "Completed all bigwig conversions " >> ${log}
 fi
 

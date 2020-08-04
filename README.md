@@ -31,6 +31,7 @@ Explain logic blah blah
 
 ### parse_lane.py
 
+
 ### genome_align.sh
 
 ### bam_to_bigwig.sh
@@ -38,6 +39,15 @@ Explain logic blah blah
 ### tidy_files.sh
 
 
+interests
+# long walks on the beach
+
+
+multithreading
+flags to chose your output and inputs 
+summary statistics
+highly human readable logs
+Irina is highly interested in the customisation of the normalisation from bam to bigwig cpm and other features
 
 # TECHNICAL DOCUMENTATION
 

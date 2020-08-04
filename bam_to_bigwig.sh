@@ -19,7 +19,6 @@ set -e						# if any error occurs, exit 1
 WORKING_DIR=$1
 EXPERIMENT_DIREC="${WORKING_DIR}/SORTED_GROUPS/"
 BAMCOVERAGE_RUN=$2
-LIB_BARCODES=$3
 
 SUB_DIRECS=$(basename `ls -d $EXPERIMENT_DIREC/*/`)
 
