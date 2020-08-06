@@ -82,6 +82,26 @@ indices          = A list of library indices, one index per line
 ref_genome       = Path to the reference genome for STAR aligner
 ```
 
+# Troubleshooting guide
+- After the line 111 in the master_script, all stderr and stdout and any conceivable error is piped to the pipeline_log.txt, look in there if something is not running as expected.
+- If you would like to introduce a comment into the log file from the bash script do so with:
+```
+echo "message" >> ${log}
+```
+e.g.
+```
+echo [$(date)] "PID: $$" >> ${log}
+```
+- If you would like to introduce a comment into the log file from the python script do so with:
+```
+write_to_log (start_time, log_path, message_as_string_format)
+```
+e.g.
+```
+write_to_log (time.time(), working_dir + "/pipeline_log.txt", 
+	"Creating {} \n for temporarily split files".format(split_dir))
+```
+
 
 # HELP FLAG
 SYNOPSIS:

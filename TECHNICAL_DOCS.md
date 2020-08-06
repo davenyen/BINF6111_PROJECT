@@ -1,7 +1,7 @@
 
 # TECHNICAL DOCUMENTATION
 
-## Installation 
+# Installation 
 
 git clone https://github.com/cactusjuic3/teamvoineagu
 
@@ -15,7 +15,7 @@ git clone https://github.com/cactusjuic3/teamvoineagu
 
 
 ### master_script.sh setup 
-Change the following program paths in master_script.sh to the actual program path on your system.
+Change the following program paths in master_script.sh to the actual program path on your system. (line 27, 28, 29)
 * STAR_RUN
 * BAMCOVERAGE_RUN
 * SAMTOOLS_RUN
@@ -25,7 +25,7 @@ Change the following program paths in master_script.sh to the actual program pat
 For the versions available, see the [tags on this repository](https://github.com/cactusjuic3/teamvoineagu/tags). 
 
 
-## Pipeline Components
+# Pipeline Components
 All scripts have thorough documentation amongst the code. Below is a summary of the function of each script, dive into the code for specifics of implemenation!
 
 ### master_script.sh
@@ -80,11 +80,7 @@ rna:check_master_script student$ head *error
 ```
 
 
-
-
-
-
-## Authors 
+# Authors 
 
 * **Chelsea Liang** - *Part A* - [LinkedIn](https://www.linkedin.com/in/chelsea-liang-03674b140/)
 * **David Nguyen** - *Part A* - [Github](https://github.com/davenyen), [LinkedIn](https://www.linkedin.com/in/david-nguyen-6003231a0/)

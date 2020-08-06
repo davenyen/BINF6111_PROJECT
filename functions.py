@@ -262,19 +262,14 @@ def split_read_two (read_two_file: str, line_count: int, thread_numbers: int) ->
 	# Calculates the number of lines for each file (fastq is 4 lines per record)
 	lines_per_file = math.ceil(line_count/thread_numbers)
 	
-	write_to_log (time.time(), working_dir + "/pipeline_log.txt", 
-	" lines_per_file is {}\
-	, line_count is {}\
-	, thread_numbers is {}\
-	".format(lines_per_file, line_count, thread_numbers))
-
 	while lines_per_file%4 != 0:
-		lines_per_file += 2
+		lines_per_file += 1
 
 	write_to_log (time.time(), working_dir + "/pipeline_log.txt", 
-		"Lines_per_file is {}\
-		, thread_numbers is {}\
-		".format(lines_per_file, thread_numbers))
+	"lines_per_file is {},\
+	line_count is {},\
+	thread_numbers is {},\
+	".format(lines_per_file, line_count, thread_numbers))
 		
 	# makes temporary split directory
 	try:
