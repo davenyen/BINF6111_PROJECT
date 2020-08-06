@@ -3,17 +3,22 @@
 
 ## Installation [TEAM_B]
 
+git clone https://github.com/cactusjuic3/teamvoineagu
 
 ### Prerequisites [TEAM_B]
 
-* [Python3](https://www.python.org/downloads/)
-* Star Aligner
 * Linux OS
+* [Python3](https://www.python.org/downloads/)
+* [Star Aligner v2.5.2b](https://physiology.med.cornell.edu/faculty/skrabanek/lab/angsd/lecture_notes/STARmanual.pdf)
+* [Deeptools](https://deeptools.readthedocs.io/en/develop/content/installation.html)(BamCoverage) 
+* [Samtools](http://www.htslib.org/) 
+
 
 ### master_script.sh setup [TEAM_B]
-Change <x> paths in master_script.sh
-
-
+Change the following program paths in master_script.sh to the actual program path on your system.
+* STAR_RUN
+* BAMCOVERAGE_RUN
+* SAMTOOLS_RUN
 
 ## Versioning
 
@@ -33,10 +38,18 @@ Explain logic blah blah
 
 
 ### genome_align.sh 
-- Align fastq files in each cell target group to human genome using STAR aligner: output is BAM file
+- Align fastq files in each cell target group to human genome using STAR aligner: output is BAM file.
+- Given a list of distinct adaptor sequences (library barcodes) perform a STAR alignment for each one.
+- Each target cell group directory has a fastq file corresponding to each of the library barcode sequences.
+- Perform a STAR alignment for each barcode sequence, by passing in multiple fastq files across all target cell group that correspond to the respective barcode sequence.
+- The STAR alignment generates one BAM file for the barcode sequence which includes reads from all target cell groups.
+- For each BAM file generated from STAR Aligner, it is split into smaller BAM files by target cell groups.
+- After all barcode sequence BAM files have been split, merge the BAM files into one larger BAM file based on their target cell group. 
+- For each target cell group BAM file an index file (.bai) is generated for visualisation.
 
 ### bam_to_bigwig.sh 
 - Convert BAM file to BigWig using bamCoverage from deepTools: output is BigWig
+- The user can change different parameters in BamCoverage to allow for read coverage normalization and read processing options.
 
 ### tidy_files.sh 
 - Deletes unwanted file formats and moves all output files to ${working_dir}/SORTED_GROUPS for easy visualisation
@@ -70,10 +83,10 @@ rna:check_master_script student$ head *error
 ## Authors [TEAM_B]
 
 * **Chelsea Liang** - *Part A* - [LinkedIn](https://www.linkedin.com/in/chelsea-liang-03674b140/)
-* **David Nguyen** - *Part A* - [Github](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
-* **Caitlyn Ramsay** - *Part B* 
-* **Michal Sernero** - *Part B* 
-* **Sehhaj Grewal** - *Part B*
+* **David Nguyen** - *Part A* - [Github](https://github.com/davenyen), [LinkedIn](https://www.linkedin.com/in/david-nguyen-6003231a0/)
+* **Caitlyn Ramsay** - *Part B* - [LinkedIn](https://www.linkedin.com/in/caitlin-ramsay-7776251a4/)
+* **Michal Sernero** - *Part B* - [Github](https://github.com/MichalSernero)
+* **Sehhaj Grewal** - *Part B* - [LinkedIn](https://www.linkedin.com/in/sehhajgrewal/)
 
 ## License
 
@@ -81,6 +94,12 @@ This project is not licensed.
 
 ## Acknowledgments [TEAM_B]
 
+* Irina Voineagu 
+* Gavin Sutton
+* Voineagu Lab
 * Pydocs
 * Stackoverflow
+* Alex Dobin - STAR 
+* Deeptools (BamCoverage)
+* Samtools
 

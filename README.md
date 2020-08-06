@@ -28,7 +28,7 @@ ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg1
 working_dir=/Users/student/BINF6111_2020/test/check_master_script
 ```
 
-#### Sample run (1 hour, 100M line fastqs)
+#### Sample run (40 minutes, 100M line fastqs)
 test 100 million for threading
 ```
 data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
@@ -39,7 +39,7 @@ ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg1
 working_dir=/Users/student/BINF6111_2020/test/100mil_test
 ```
 
-#### Sample full run (5.5 hour, 1B line fastqs)
+#### Sample full run (5.25 hour, 1B line fastqs)
 full run A1
 ```
 data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A1
