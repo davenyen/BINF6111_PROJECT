@@ -1,11 +1,11 @@
 
 # TECHNICAL DOCUMENTATION
 
-## Installation [TEAM_B]
+## Installation 
 
 git clone https://github.com/cactusjuic3/teamvoineagu
 
-### Prerequisites [TEAM_B]
+### Prerequisites 
 
 * Linux OS
 * [Python3](https://www.python.org/downloads/)
@@ -14,7 +14,7 @@ git clone https://github.com/cactusjuic3/teamvoineagu
 * [Samtools](http://www.htslib.org/) 
 
 
-### master_script.sh setup [TEAM_B]
+### master_script.sh setup 
 Change the following program paths in master_script.sh to the actual program path on your system.
 * STAR_RUN
 * BAMCOVERAGE_RUN
@@ -28,8 +28,12 @@ For the versions available, see the [tags on this repository](https://github.com
 ## Pipeline Components
 All scripts have thorough documentation amongst the code. Below is a summary of the function of each script, dive into the code for specifics of implemenation!
 
-### master_script.sh [TEAM_A]
-Explain logic blah blah
+### master_script.sh
+- Copies fastq files from data directory and decompresses them in the working directory
+- For each lane of read one, run parse_lane.py
+- Once all lanes have been run, align the fastqs with star aligner in one run for each library index with genome_align.sh
+- If necessary convert bam files to bigwig with bam_to_bigwig.sh
+- Remove temporary and intermediary files, tidy output directory with tidy_files.sh
 
 ### parse_lane.py 
 - Create dictionary of form dictionary[16bp_barcode] = x:y:z by iterating through read one fastqs: output is dictionary
@@ -54,7 +58,7 @@ Explain logic blah blah
 ### tidy_files.sh 
 - Deletes unwanted file formats and moves all output files to ${working_dir}/SORTED_GROUPS for easy visualisation
 
-## Expert Functionality [TEAM_A]
+## Expert Functionality 
 - Read ones with erroneous indices will have their header printed to a fastq.error
 - Percentage of these erroneous indices is printed in the log per lane
 - You may identify these indices and incoporate them in another run
@@ -80,7 +84,7 @@ rna:check_master_script student$ head *error
 
 
 
-## Authors [TEAM_B]
+## Authors 
 
 * **Chelsea Liang** - *Part A* - [LinkedIn](https://www.linkedin.com/in/chelsea-liang-03674b140/)
 * **David Nguyen** - *Part A* - [Github](https://github.com/davenyen), [LinkedIn](https://www.linkedin.com/in/david-nguyen-6003231a0/)
@@ -92,7 +96,7 @@ rna:check_master_script student$ head *error
 
 This project is not licensed. 
 
-## Acknowledgments [TEAM_B]
+## Acknowledgments 
 
 * Irina Voineagu 
 * Gavin Sutton

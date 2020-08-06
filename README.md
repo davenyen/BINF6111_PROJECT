@@ -50,13 +50,13 @@ working_dir=/Users/student/BINF6111_2020/test/full_run_A1
 ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
 ```
 
-full run A2
+full run A3
 ```
-data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A2
-matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A2.csv
-desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA2.txt
-indices=/Users/student/BINF6111_2020/data/Indices_A2.txt
-working_dir=/Users/student/BINF6111_2020/test/full_run_A2
+data_path=/Volumes/Data1/DATA/2020/CRISPRi_pilot_NovaSeq/Processed_FastQ_GOK7724/outs/fastq_path/GOK7724/GOK7724A3
+matrix=/Users/student/BINF6111_2020/data/Barcode_Protospacer_Correspondence_GOK7724A3.csv
+desired_barcodes=/Users/student/BINF6111_2020/data/barcodesA3.txt
+indices=/Users/student/BINF6111_2020/data/Indices_A3.txt
+working_dir=/Users/student/BINF6111_2020/test/full_run_A3
 ref_genome=/Volumes/MacintoshHD_RNA/Users/rna/REFERENCE/HUMAN/Ensembl_GRCh37_hg19/STAR_genome_index
 ```
 
