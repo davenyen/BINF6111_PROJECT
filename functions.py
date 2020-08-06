@@ -5,13 +5,14 @@
 import os
 import re
 import sys
-import time
 import csv
+import time
+import math
+import typing
 import datetime
 import threading
 import subprocess
 import collections
-import typing
 from itertools import islice
 
 
@@ -133,7 +134,7 @@ def create_coordinates_barcodes_dictionary (read_one: str, barcode_matrix: dict,
 
 		if not i % 2:
 			consume(read_one_file, 2)
-			line_count += 2
+ 			line_count += 2
 
 	error_read_one_file.close()
 	read_one_file.close()
@@ -244,6 +245,7 @@ def create_threads (split_files: list, barcode_matrix: dict, r1_barcode_dict: di
 # Splits Read 2 file and returns list of split files (splits to current directory for now) 
 def split_read_two (read_two_file: str, line_count: int, thread_numbers: int) -> (list, str):
 	""" Parameters:
+			message		   = Text to print to log
 			read_two_file  = The R2 file
 			line_count     = Number of lines from R1 as (R1 lines = R2 lines)
 			thread_numbers = Number of files to be split into (num threads = num of split files)
@@ -255,14 +257,35 @@ def split_read_two (read_two_file: str, line_count: int, thread_numbers: int) ->
 			which will significantly speed up the program.
 	"""
 	split_files = []
-	split_dir = "/".join(read_two_file.split("/")[0:-1]) + "/_temp"
-	print(split_dir)
-	# Calculates the number of lines for each file (fastq is 4 lines per rercord)
-	lines_per_file = (line_count/thread_numbers)
+	working_dir = "/".join(read_two_file.split("/")[0:-1])
+	split_dir = working_dir + "/_temp"
+	# Calculates the number of lines for each file (fastq is 4 lines per record)
+	lines_per_file = math.ceil(line_count/thread_numbers)
+	
+	write_to_log (time.time(), working_dir + "/pipeline_log.txt", 
+	" lines_per_file is {}\
+	, line_count is {}\
+	, thread_numbers is {}\
+	".format(lines_per_file, line_count, thread_numbers))
+
 	while lines_per_file%4 != 0:
 		lines_per_file += 2
+
+	write_to_log (time.time(), working_dir + "/pipeline_log.txt", 
+		"Lines_per_file is {}\
+		, thread_numbers is {}\
+		".format(lines_per_file, thread_numbers))
+		
 	# makes temporary split directory
-	os.makedirs("{}".format(split_dir))
+	try:
+		os.makedirs("{}".format(split_dir))
+	except:
+		print('could not make _temp/ directory')
+		exit
+
+	write_to_log (time.time(), working_dir + "/pipeline_log.txt", 
+		"Creating {} \n for temporarily split files ".format(split_dir))
+
 	# System command to split into {thread_numbers} files
 	os.system("split -l{} {} {}/split_".format(int(lines_per_file), read_two_file, split_dir))
 	# Saves each split_file into a list for use in threading

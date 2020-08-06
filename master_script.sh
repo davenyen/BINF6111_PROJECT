@@ -9,7 +9,7 @@
 # run with:
 # mkdir -p ${working_dir}
 # ./master_script.sh -w ${working_dir} -d ${data_path} -m ${matrix} \
-# -b ${desired_barcodes} -i ${indices} -r ${ref_genome} &
+# -b ${desired_barcodes} -i ${indices} -r ${ref_genome} -e &
 # disown -h %1
 
 ## LOGS AND ERRORS
@@ -21,7 +21,7 @@ threads=8
 delete_fastq=true
 output="bigwig"
 exist=false
-groups=false
+groups=0
 
 ## PROGRAM PATHS -- PLEASE CHANGE THESE PATHS TO THE ACTUAL PROGRAM PATHS ON YOUR SYSTEM
 STAR_RUN="/Volumes/MacintoshHD_RNA/Users/rna/PROGRAMS/STAR-2.5.2b/bin/MacOSX_x86_64/STAR"
@@ -50,7 +50,7 @@ do
     r) ref_genome=$OPTARG;; # specifies the path to the reference genome directory
 	f) delete_fastq=false;; # option to keep intermediate fastq files at end of run
 	e) exist=true;; # specifies whether fastq files already exist in working directory
-	g) groups=true;; # specifies whether a desired lsit of cell groups is provided
+	g) groups=1;; # specifies whether a desired list of cell groups is provided
 	o) output=$OPTARG;; # specifies the output type of the script
 	t) threads=$OPTARG;; # the number of threads to be run for script
 	h) tail -n46 README.md
@@ -94,6 +94,12 @@ then
 	exit 1
 fi
 
+echo ""
+echo "threads = " ${threads}
+echo "fastqs per index will be deleted = " ${delete_fastq}
+echo "output = " ${output}
+echo "fastqs already exist = " ${exist}
+echo "groups instead of barcodes = " ${groups}
 echo ""
 echo [$(date)] "Completed error checking inputs, pipeline will complete in background."
 echo "Make sure to check pipeline_log.txt before using results in case the script terminated unexpectedly."
@@ -147,6 +153,7 @@ echo "===========================================================" >> ${log}
  done
 
  rm -fr ${working_dir}/SORTED_GROUPS/
+ rm -fr ${working_dir}/_temp/
  echo [$(date)] "Cleaned directory for new run" >> ${log}
 
 # # iterate through files in working_dir to launch parsing of each lane
@@ -173,9 +180,9 @@ echo "===========================================================" >> ${log}
  		lane=${BASH_REMATCH[2]}
  		if [[ ${lane} == "L001" ]]
  			then
- 			append_status=false
+ 			append_status=0
  		else 
- 			append_status=true
+ 			append_status=1
  		fi
 
  		python3 parse_lane.py ${fastq} ${matrix} ${desired_barcodes} ${groups} ${indices} ${experiment_name} ${append_status} ${threads}
@@ -191,7 +198,8 @@ echo "===========================================================" >> ${log}
 
  done
 
- echo [$(date)] "Completed fastq groups for ${experiment_name}" >> ${log}
+ echo [$(date)] "Completed fastq groups for: " >> ${log}
+ echo [$(date)] "${experiment_name}" >> ${log}
 
 ## ALIGN TO HUMAN GENOME
 ./genome_align.sh ${working_dir} ${ref_genome} ${indices} $STAR_RUN $SAMTOOLS_RUN
@@ -227,5 +235,6 @@ echo [$(date)] "Finished tidying up outputs" >> ${log}
 ## PRINTS DURATION OF SCRIPT
 duration=${SECONDS}
 echo "$((${duration} / 3600)) hours, $(((${duration} / 60) % 60)) minutes and $((${duration} % 60)) seconds elapsed" >> ${log}
-echo [$(date)] "COMPLETED PIPELINE for: ${experiment_name}" >> ${log}
+echo [$(date)] "COMPLETED PIPELINE for: " >> ${log}
+echo "${experiment_name}" >> ${log}
 echo "===========================================================" >> ${log}

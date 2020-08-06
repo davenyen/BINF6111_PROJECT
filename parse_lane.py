@@ -20,10 +20,10 @@ if __name__ == '__main__':
 	read_one = sys.argv[1]
 	csv_matrix = sys.argv[2]
 	desired_barcodes = sys.argv[3]
-	groups = bool(sys.argv[4])
+	groups = bool(int(sys.argv[4]))
 	indices_path = sys.argv[5]
 	experiment_name = sys.argv[6]
-	append_target_directory = bool(sys.argv[7])
+	append_target_directory = bool(int(sys.argv[7]))
 	num_threads = int(sys.argv[8])
 	
 	## Derived

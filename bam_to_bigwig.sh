@@ -45,4 +45,3 @@ do
         echo "BigWig file not created - no reads in BAM file: ${direc}" >> ${WORKING_DIR}/pipeline_log.txt
     fi
 done
-
