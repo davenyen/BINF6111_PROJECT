@@ -18,7 +18,7 @@ git clone https://github.com/cactusjuic3/teamvoineagu
 
 
 ### master_script.sh setup 
-Change the following [program paths in master_script.sh](https://github.com/cactusjuic3/teamvoineagu/blob/d7f5ea08aa42ec65a14298d536eed6715a981b23/master_script.sh#L27-L29) to the actual program path on your system (lines 27, 28, 29):
+Change the following [program paths in master_script.sh](https://github.com/cactusjuic3/teamvoineagu/blob/fd48bda85455afa3a6d8dbdba477ceb5d026f9d0/master_script.sh#L27-L29) to the actual program path on your system (lines 27, 28, 29):
 * STAR_RUN
 * BAMCOVERAGE_RUN
 * SAMTOOLS_RUN
@@ -47,7 +47,7 @@ All scripts have thorough documentation amongst the code. Below is a summary of 
 
 ### genome_align.sh 
 - Align fastq files in each cell target group to human genome using STAR aligner: output is BAM file.
-- The user is free to add, remove or adjust parameters in the STAR aligner command to suit their needs - please refer to the [STAR Aligner docs](https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf) to see the available options.
+- The user is free to add, remove or adjust parameters in the [STAR aligner command](https://github.com/cactusjuic3/teamvoineagu/blob/fd48bda85455afa3a6d8dbdba477ceb5d026f9d0/genome_align.sh#L57-L72) to suit their needs - please refer to the [STAR Aligner docs](https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf) to see the available options.
 - Given a list of distinct adaptor sequences (library barcodes) perform a STAR alignment for each one.
     - Each target cell group directory has a fastq file corresponding to each of the library barcode sequences.
     - Perform a STAR alignment for each barcode sequence, by passing in multiple fastq files across all target cell group that correspond to the respective barcode sequence.
@@ -58,7 +58,7 @@ All scripts have thorough documentation amongst the code. Below is a summary of 
 
 ### bam_to_bigwig.sh 
 - Convert a BAM file to a BigWig file using bamCoverage from deepTools
-- The user is free to add, remove or adjust parameters in the bamCoverage command to suit their needs - please refer to the [bamCoverage docs](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html) to see the available options.
+- The user is free to add, remove or adjust parameters in the [bamCoverage command](https://github.com/cactusjuic3/teamvoineagu/blob/fd48bda85455afa3a6d8dbdba477ceb5d026f9d0/bam_to_bigwig.sh#L41) to suit their needs - please refer to the [bamCoverage docs](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html) to see the available options.
 
 ### tidy_files.sh 
 - Deletes unwanted file formats and moves all output files to ${working_dir}/SORTED_GROUPS for easy visualisation
@@ -89,7 +89,7 @@ rna:check_master_script student$ head *error
 
 * **Chelsea Liang** - *Part A* - [LinkedIn](https://www.linkedin.com/in/chelsea-liang-03674b140/)
 * **David Nguyen** - *Part A* - [Github](https://github.com/davenyen), [LinkedIn](https://www.linkedin.com/in/david-nguyen-6003231a0/)
-* **Caitlyn Ramsay** - *Part B* - [LinkedIn](https://www.linkedin.com/in/caitlin-ramsay-7776251a4/)
+* **Caitlin Ramsay** - *Part B* - [LinkedIn](https://www.linkedin.com/in/caitlin-ramsay-7776251a4/)
 * **Michal Sernero** - *Part B* - [Github](https://github.com/MichalSernero)
 * **Sehhaj Grewal** - *Part B* - [LinkedIn](https://www.linkedin.com/in/sehhajgrewal/)
 
