@@ -13,26 +13,6 @@
 #                        path to STAR aligner program,
 #                        path to SamTools program
 
-# ERROR HANDLING
-    # make sure input library barcode file is in correct format
-
-# if there is a distinct number of adaptor/barcode sequences:
-# for each adaptor sequence
-    # perform STAR alignment on multiple fastq files
-    # ie. every fastq file in each sub-direc associated
-    # with the current adaptor sequence and provide
-    # read groups for each different cell group
-    # generates one BAM file 
-    # split BAM file into multiple BAM files by
-    # read groups: using samtools split
-        # samtools split Aligned.out.bam -f '%!.{$barcode}'
-        # %! means the read group name so the file will be
-        # named with each cell group
-    # move each BAM file into its cell group directory
-
-# once all smaller BAM files are in each sub-directory:
-# merge all the BAM files together into one
-
 set -e						# if any error occurs, exit 1
 
 WORKING_DIR=$1

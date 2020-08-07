@@ -55,7 +55,8 @@ do
 	t) threads=$OPTARG;; # the number of threads to be run for script
 	h) tail -n46 README.md
 		exit 1;;
-	?) echo "? option: -$OPTARG" >&2 
+	?) echo "Invalid option: -$OPTARG"
+		echo "Refer to ./master_script.sh -h for usage." 
 		exit 1;;
   esac
 done

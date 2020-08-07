@@ -1,7 +1,7 @@
 
 # Voineagu Pipeline
 
-Launches pipeline to parse CROP-Seq fastq data files into corresponding directories for each perturbation group and aligns reads in each group to the human genome. BigWig files are generated for visualisation in genome browsers
+Launches pipeline to parse CROP-Seq fastq data files into corresponding directories for each perturbation group and aligns reads in each group to the human genome. BigWig files are generated for visualisation in genome browsers.
 
 
 # USER DOCUMENTATION
@@ -83,7 +83,7 @@ ref_genome       = Path to the reference genome for STAR aligner
 ```
 
 # Troubleshooting guide
-- After the line 111 in the master_script, all stderr and stdout and any conceivable error is piped to the pipeline_log.txt, look in there if something is not running as expected.
+- After line 111 in the master_script, all stderr and stdout and any conceivable error is piped to the pipeline_log.txt, look in there if something is not running as expected.
 - If you would like to introduce a comment into the log file from the bash script do so with:
 ```
 echo "message" >> ${log}
@@ -103,14 +103,14 @@ write_to_log (time.time(), working_dir + "/pipeline_log.txt",
 ```
 
 
-# HELP FLAG
-SYNOPSIS:
+# Help Flag
+## SYNOPSIS
 Launches pipeline to parse CROP-Seq fastq data files into corresponding directories for each perturbation group and aligns reads in each group to the human genome. BigWig files are generated for visualisation in genome browsers
 
-USAGE:
+## USAGE
 ./master_script.sh -w working_dir - d data_path -m matrix -b desired_barcodes -i indices -r ref_genome [-o output_format] [-f] [-e] [-g] [-t]
 
-Required flags:
+### Required flags
 
 	-w	PATH to working directory for output 
 
@@ -125,7 +125,7 @@ Required flags:
 	-r	PATH to reference genome directory
 
 
-Optional flags:
+### Optional flags
 	
 	-o		
 	 bam		output files only in BAM format
@@ -145,8 +145,8 @@ Optional flags:
 	-t		number of threads used to run for the script
 			default: 8
 
-EXAMPLE:
-./master_script.sh -w “experiment/results/” -d “DATA/fastq_path/A1/” -m “DATA/barcode_matrix.csv” -b “DATA/A1_barcodes.txt” -i “DATA/A1_indices.txt” -r “GENOMES/HUMAN/hg19/STAR_genome_index” -o “bigwig”
+## EXAMPLE
+	./master_script.sh -w “experiment/results/” -d “DATA/fastq_path/A1/” -m “DATA/barcode_matrix.csv” -b “DATA/A1_barcodes.txt” -i “DATA/A1_indices.txt” -r “GENOMES/HUMAN/hg19/STAR_genome_index” -o “bigwig”
 
-AUTHORS:
+## AUTHORS
 UNSW BINF6111 Team Voineagu 2020 - Caitlin Ramsay, Chelsea Liang, David Nguyen, Michal Sernero, Sehhaj Grewal

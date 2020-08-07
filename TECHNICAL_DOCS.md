@@ -3,7 +3,7 @@
 
 # Installation 
 
-Install the pipeline using the following command
+Install the pipeline using the following command:
 ```
 git clone https://github.com/cactusjuic3/teamvoineagu
 ```
@@ -12,13 +12,13 @@ git clone https://github.com/cactusjuic3/teamvoineagu
 
 * Linux OS
 * [Python3](https://www.python.org/downloads/)
-* [Star Aligner v2.5.2b](https://physiology.med.cornell.edu/faculty/skrabanek/lab/angsd/lecture_notes/STARmanual.pdf)
+* [Star Aligner v2.5.2b](https://github.com/alexdobin/STAR)
 * [Deeptools](https://deeptools.readthedocs.io/en/develop/content/installation.html) (bamCoverage) 
 * [Samtools](http://www.htslib.org/) 
 
 
 ### master_script.sh setup 
-Change the following program paths in master_script.sh to the actual program path on your system (lines 27, 28, 29):
+Change the following [program paths in master_script.sh](https://github.com/cactusjuic3/teamvoineagu/blob/d7f5ea08aa42ec65a14298d536eed6715a981b23/master_script.sh#L27-L29) to the actual program path on your system (lines 27, 28, 29):
 * STAR_RUN
 * BAMCOVERAGE_RUN
 * SAMTOOLS_RUN
@@ -47,7 +47,7 @@ All scripts have thorough documentation amongst the code. Below is a summary of 
 
 ### genome_align.sh 
 - Align fastq files in each cell target group to human genome using STAR aligner: output is BAM file.
-- The user is free to add, remove or adjust parameters in the STAR aligner command to suit their needs - please refer to the [STAR Aligner docs](https://physiology.med.cornell.edu/faculty/skrabanek/lab/angsd/lecture_notes/STARmanual.pdf) to see the available options.
+- The user is free to add, remove or adjust parameters in the STAR aligner command to suit their needs - please refer to the [STAR Aligner docs](https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf) to see the available options.
 - Given a list of distinct adaptor sequences (library barcodes) perform a STAR alignment for each one.
     - Each target cell group directory has a fastq file corresponding to each of the library barcode sequences.
     - Perform a STAR alignment for each barcode sequence, by passing in multiple fastq files across all target cell group that correspond to the respective barcode sequence.
@@ -59,7 +59,6 @@ All scripts have thorough documentation amongst the code. Below is a summary of 
 ### bam_to_bigwig.sh 
 - Convert a BAM file to a BigWig file using bamCoverage from deepTools
 - The user is free to add, remove or adjust parameters in the bamCoverage command to suit their needs - please refer to the [bamCoverage docs](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html) to see the available options.
-- The user can change different parameters in BamCoverage to allow for read coverage normalization and read processing options.
 
 ### tidy_files.sh 
 - Deletes unwanted file formats and moves all output files to ${working_dir}/SORTED_GROUPS for easy visualisation
