@@ -111,6 +111,7 @@ USAGE:
 ./master_script.sh -w working_dir - d data_path -m matrix -b desired_barcodes -i indices -r ref_genome [-o output_format] [-f] [-e] [-g] [-t]
 
 Required flags:
+
 	-w	PATH to working directory for output 
 
 	-d	PATH to input data
@@ -125,14 +126,15 @@ Required flags:
 
 
 Optional flags:
+	
 	-o		
 	 bam		output files only in BAM format
 	 bigwig		output files only in BigWig format
-	 bambw          output files in BAM and BigWig format
-			default: output is BAM and BigWig
+	 bambw      output files in BAM and BigWig format
+				default: output is BAM and BigWig
 
 	-f		keep fastq files in working directory
-		        default: fastq files are deleted from working directory
+		    default: fastq files are deleted from working directory
 
 	-e		fastq files already exist in working directories
 			default: false

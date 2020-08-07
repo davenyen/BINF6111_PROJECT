@@ -3,14 +3,17 @@
 
 # Installation 
 
+Install the pipeline using the following command
+```
 git clone https://github.com/cactusjuic3/teamvoineagu
+```
 
 ### Prerequisites 
 
 * Linux OS
 * [Python3](https://www.python.org/downloads/)
 * [Star Aligner v2.5.2b](https://physiology.med.cornell.edu/faculty/skrabanek/lab/angsd/lecture_notes/STARmanual.pdf)
-* [Deeptools](https://deeptools.readthedocs.io/en/develop/content/installation.html)(BamCoverage) 
+* [Deeptools](https://deeptools.readthedocs.io/en/develop/content/installation.html) (bamCoverage) 
 * [Samtools](http://www.htslib.org/) 
 
 
@@ -24,6 +27,9 @@ Change the following program paths in master_script.sh to the actual program pat
 
 For the versions available, see the [tags on this repository](https://github.com/cactusjuic3/teamvoineagu/tags). 
 
+# Pipeline Workflow Diagram
+
+
 
 # Pipeline Components
 All scripts have thorough documentation amongst the code. Below is a summary of the function of each script, dive into the code for specifics of implemenation!
@@ -32,7 +38,7 @@ All scripts have thorough documentation amongst the code. Below is a summary of 
 - Copies fastq files from data directory and decompresses them in the working directory
 - For each lane of read one, run parse_lane.py
 - Once all lanes have been run, align the fastqs with star aligner in one run for each library index with genome_align.sh
-- If necessary convert bam files to bigwig with bam_to_bigwig.sh
+- If necessary convert BAM files to BigWig with bam_to_bigwig.sh
 - Remove temporary and intermediary files, tidy output directory with tidy_files.sh
 
 ### parse_lane.py 
@@ -40,19 +46,20 @@ All scripts have thorough documentation amongst the code. Below is a summary of 
 - Iterate through corresponding read two fastq, if coordinates exist in dictionary, assign the read to its target group and write reads out separated by their library index: output is one directory for every group with 4 fastqs inside, one for each
 - For datasets with fastqs greater than 100 million lines, threading will be enabled to increase performance of pipeline
 
-
 ### genome_align.sh 
 - Align fastq files in each cell target group to human genome using STAR aligner: output is BAM file.
+- The user is free to add, remove or adjust parameters in the STAR aligner command to suit their needs - please refer to the [STAR Aligner docs](https://physiology.med.cornell.edu/faculty/skrabanek/lab/angsd/lecture_notes/STARmanual.pdf) to see the available options.
 - Given a list of distinct adaptor sequences (library barcodes) perform a STAR alignment for each one.
-- Each target cell group directory has a fastq file corresponding to each of the library barcode sequences.
-- Perform a STAR alignment for each barcode sequence, by passing in multiple fastq files across all target cell group that correspond to the respective barcode sequence.
+    - Each target cell group directory has a fastq file corresponding to each of the library barcode sequences.
+    - Perform a STAR alignment for each barcode sequence, by passing in multiple fastq files across all target cell group that correspond to the respective barcode sequence.
 - The STAR alignment generates one BAM file for the barcode sequence which includes reads from all target cell groups.
 - For each BAM file generated from STAR Aligner, it is split into smaller BAM files by target cell groups.
 - After all barcode sequence BAM files have been split, merge the BAM files into one larger BAM file based on their target cell group. 
-- For each target cell group BAM file an index file (.bai) is generated for visualisation.
+- For each target cell group BAM file an index file (.bai) is generated to assist with visualisation.
 
 ### bam_to_bigwig.sh 
-- Convert BAM file to BigWig using bamCoverage from deepTools: output is BigWig
+- Convert a BAM file to a BigWig file using bamCoverage from deepTools
+- The user is free to add, remove or adjust parameters in the bamCoverage command to suit their needs - please refer to the [bamCoverage docs](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html) to see the available options.
 - The user can change different parameters in BamCoverage to allow for read coverage normalization and read processing options.
 
 ### tidy_files.sh 
