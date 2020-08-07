@@ -18,7 +18,7 @@ git clone https://github.com/cactusjuic3/teamvoineagu
 
 
 ### master_script.sh setup 
-Change the following [program paths in master_script.sh](https://github.com/cactusjuic3/teamvoineagu/blob/c7646a29822f2d68193f3bd23c52f34011bc83e3/master_script.sh#L27-L29) to the actual program path on your system (line 27, 28, 29):
+Change the following program paths in master_script.sh to the actual program path on your system (lines 27, 28, 29):
 * STAR_RUN
 * BAMCOVERAGE_RUN
 * SAMTOOLS_RUN
